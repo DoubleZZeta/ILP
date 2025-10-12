@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 @Service
@@ -29,7 +31,11 @@ public class RestServiceImplementation implements RestService
         Position position2 = Request.getPosition2();
 
         Double distance = Utility.calculateDistance(position1,position2);
-        boolean result = distance.compareTo(unitLength) <= 0;
+        DecimalFormat df = new DecimalFormat("#.#####");
+        df.setRoundingMode(RoundingMode.HALF_EVEN);
+        distance = Double.parseDouble(df.format(distance));
+
+        boolean result = distance.compareTo(unitLength) < 0;
 
         return result ? "true" : "false";
     }
@@ -44,7 +50,7 @@ public class RestServiceImplementation implements RestService
         Double lng = unitLength * Math.cos(angle) + start.getLng();
         Double lat = unitLength * Math.sin(angle) + start.getLat();
 
-        return Utility.PostionToJSONString(new Position(lng, lat));
+        return Utility.positionToJSONString(new Position(lng, lat));
     }
 
     @Override
@@ -54,7 +60,7 @@ public class RestServiceImplementation implements RestService
         Region region = Request.getRegion();
 
         int count = 0;
-        ArrayList<PositionsRequest> edges = Utility.GetRegionEdges(region);
+        ArrayList<PositionsRequest> edges = Utility.getRegionEdges(region);
 
         for(PositionsRequest edge : edges)
         {

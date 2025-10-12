@@ -3,7 +3,7 @@ package uk.ac.ed.acp.cw2.validation;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class isAngleMultipleOfValidator implements
+public class IsAngleMultipleOfValidator implements
         ConstraintValidator<IsAngleMultipleOf, Double>
 {
     @Override

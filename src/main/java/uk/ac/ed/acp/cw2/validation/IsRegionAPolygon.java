@@ -7,12 +7,12 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = IsAngleMultipleOfValidator.class)
+@Constraint(validatedBy = IsRegionAPolygonValidator.class)
 @Target( { ElementType.METHOD, ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface IsAngleMultipleOf
+public @interface IsRegionAPolygon
 {
-    String message() default "Angle is not a multiple of 22.5";
+    String message() default "The region is not a polygon";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

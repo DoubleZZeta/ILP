@@ -7,7 +7,7 @@ import uk.ac.ed.acp.cw2.data.Position;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class isRegionClosedValidator implements
+public class IsRegionClosedValidator implements
         ConstraintValidator<IsRegionClosed, ArrayList<Position>>
 {
     @Override

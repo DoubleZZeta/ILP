@@ -8,43 +8,43 @@ import java.util.ArrayList;
 
 public class Utility
 {
-    public static Position GetRightPosition(PositionsRequest edge)
+    public static Position getRightPosition(PositionsRequest edge)
     {
         Position position1 = edge.getPosition1();
         Position position2 = edge.getPosition2();
 
-        if (position1.getLng() <= position2.getLng())
-        {
-            return position2;
-        }
-        else
+        if (position1.getLng() >= position2.getLng())
         {
             return position1;
         }
+        else
+        {
+            return position2;
+        }
     }
 
-    public static Position GetUpperPosition(PositionsRequest edge)
+    public static Position getUpperPosition(PositionsRequest edge)
+    {
+        Position position1 = edge.getPosition1();
+        Position position2 = edge.getPosition2();
+
+        if (position1.getLat() >= position2.getLat())
+        {
+            return position1;
+        }
+        else
+        {
+            return position2;
+        }
+    }
+
+    public static Position getLowerPosition(PositionsRequest edge)
     {
         Position position1 = edge.getPosition1();
         Position position2 = edge.getPosition2();
 
         if (position1.getLat() <= position2.getLat())
         {
-            return position2;
-        }
-        else
-        {
-            return position1;
-        }
-    }
-
-    public static Position GetLowerPosition(PositionsRequest edge)
-    {
-        Position position1 = edge.getPosition1();
-        Position position2 = edge.getPosition2();
-
-        if (position1.getLat() <= position2.getLat())
-        {
             return position1;
         }
         else
@@ -53,7 +53,7 @@ public class Utility
         }
     }
 
-    public static String PostionToJSONString(Position position)
+    public static String positionToJSONString(Position position)
     {
         return String.format("{ lng: %.5f, lat: %.5f }", position.getLng(), position.getLat());
     }
@@ -71,7 +71,7 @@ public class Utility
         return Math.sqrt(Math.pow(lngDiff, 2) + Math.pow(latDiff, 2));
     }
 
-    public static ArrayList<PositionsRequest> GetRegionEdges(Region region)
+    public static ArrayList<PositionsRequest> getRegionEdges(Region region)
     {
         ArrayList<Position> vertices = region.getVertices();
 
@@ -90,9 +90,9 @@ public class Utility
 
     public static boolean isEdgeIntersectWithRay(Position vertex, PositionsRequest edge)
     {
-        Position rightPosition = GetRightPosition(edge);
-        Position lowerPosition = GetLowerPosition(edge);
-        Position upperPosition = GetUpperPosition(edge);
+        Position rightPosition = getRightPosition(edge);
+        Position lowerPosition = getLowerPosition(edge);
+        Position upperPosition = getUpperPosition(edge);
 
         boolean EdgeOnRightOfVertex = true;
         boolean EdgeIntersectWithRay = true;
