@@ -60,7 +60,7 @@ public class DistanceToTests
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(content().string("0.00362"))
-                .andExpect(status().isOk());
+                .andExpect(status().is(200));
     }
 
     @Test
@@ -120,5 +120,22 @@ public class DistanceToTests
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testNextPositionAngleFieldMissingStatus400() throws Exception
+    {
+        String requestBody = "{" +
+                "\"start\": {" +
+                "\"lng\": -3.192473," +
+                "\"lat\": 55.946233" +
+                "}" +
+                "}";
+
+        this.mockMvc.perform(post("/api/v1/nextPosition")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
+
     }
 }

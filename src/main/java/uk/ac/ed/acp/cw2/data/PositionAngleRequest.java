@@ -15,7 +15,7 @@ public class PositionAngleRequest
     @NotNull
     private Position start;
 
-    @NotNull
     @IsAngleMultipleOf
+    @NotNull
     private Double angle;
 }

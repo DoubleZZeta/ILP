@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class IsRegionAPolygonValidator implements
-        ConstraintValidator<IsRegionClosed, ArrayList<Position>>
+        ConstraintValidator<IsRegionAPolygon, ArrayList<Position>>
 {
     @Override
-    public void initialize(IsRegionClosed constraintAnnotation)
+    public void initialize(IsRegionAPolygon constraintAnnotation)
     {
 
     }

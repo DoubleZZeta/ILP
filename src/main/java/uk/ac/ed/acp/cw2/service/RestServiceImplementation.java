@@ -1,5 +1,7 @@
 package uk.ac.ed.acp.cw2.service;
 
+import lombok.experimental.UtilityClass;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.utility.Utility;
@@ -11,7 +13,13 @@ import java.util.ArrayList;
 @Service
 public class RestServiceImplementation implements RestService
 {
+    private final Utility utility;
     private static final Double unitLength = 0.00015;
+
+    @Autowired
+    public RestServiceImplementation(final Utility utility) {
+        this.utility = utility;
+    }
 
     @Override
     public String distanceTo(PositionsRequest Request)
@@ -19,7 +27,7 @@ public class RestServiceImplementation implements RestService
         Position position1 = Request.getPosition1();
         Position position2 = Request.getPosition2();
 
-        Double distance = Utility.calculateDistance(position1,position2);
+        Double distance = utility.calculateDistance(position1,position2);
 
         return String.format("%.5f", distance);
     }
@@ -30,7 +38,7 @@ public class RestServiceImplementation implements RestService
         Position position1 = Request.getPosition1();
         Position position2 = Request.getPosition2();
 
-        Double distance = Utility.calculateDistance(position1,position2);
+        Double distance = utility.calculateDistance(position1,position2);
         DecimalFormat df = new DecimalFormat("#.#####");
         df.setRoundingMode(RoundingMode.HALF_EVEN);
         distance = Double.parseDouble(df.format(distance));
@@ -41,8 +49,7 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public String nextPosition(PositionAngleRequest Request)
-    {
+    public String nextPosition(PositionAngleRequest Request) {
         Position start = Request.getStart();
         Double angle = Request.getAngle();
 
@@ -50,7 +57,7 @@ public class RestServiceImplementation implements RestService
         Double lng = unitLength * Math.cos(angle) + start.getLng();
         Double lat = unitLength * Math.sin(angle) + start.getLat();
 
-        return Utility.positionToJSONString(new Position(lng, lat));
+        return String.format("{ lng: %.5f, lat: %.5f }", lng, lat);
     }
 
     @Override
@@ -60,11 +67,15 @@ public class RestServiceImplementation implements RestService
         Region region = Request.getRegion();
 
         int count = 0;
-        ArrayList<PositionsRequest> edges = Utility.getRegionEdges(region);
+        ArrayList<PositionsRequest> edges = utility.getRegionEdges(region);
 
         for(PositionsRequest edge : edges)
         {
-            if(Utility.isEdgeIntersectWithRay(position, edge))
+            if (utility.isVertexOnEdge(position,edge))
+            {
+                return "true";
+            }
+            else if(utility.isEdgeIntersectWithRay(position, edge))
             {
                 count++;
             }

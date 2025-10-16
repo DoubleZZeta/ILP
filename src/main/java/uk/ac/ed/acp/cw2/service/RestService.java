@@ -6,8 +6,8 @@ import uk.ac.ed.acp.cw2.data.PositionsRequest;
 
 public interface RestService
 {
-    public abstract String distanceTo(PositionsRequest Request);
-    public abstract String isCloseTo(PositionsRequest Request);
-    public abstract String nextPosition(PositionAngleRequest Request);
-    public abstract String isInRegion(PositionRegionRequest Request);
+    String distanceTo(PositionsRequest Request); //TODO public abstract???
+    String isCloseTo(PositionsRequest Request);
+    String nextPosition(PositionAngleRequest Request);
+    String isInRegion(PositionRegionRequest Request);
 }

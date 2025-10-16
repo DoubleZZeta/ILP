@@ -18,6 +18,6 @@ public class Region
 
     @NotNull
     @IsRegionClosed
-    //@IsRegionAPolygon
+    @IsRegionAPolygon
     private ArrayList<Position> vertices;
 }

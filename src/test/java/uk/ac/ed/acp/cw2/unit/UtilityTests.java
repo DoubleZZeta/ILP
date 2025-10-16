@@ -19,6 +19,8 @@ import java.util.Objects;
 
 public class UtilityTests
 {
+    Utility utility = new Utility();
+
     @Mock
     Position position1;
 
@@ -34,6 +36,7 @@ public class UtilityTests
     @InjectMocks
     Region region;
 
+    //Can't do mock injection for two parameters with same type, use regular DTO instead
     PositionsRequest positionsRequest;
 
     @BeforeEach
@@ -45,122 +48,15 @@ public class UtilityTests
     }
 
     @Test
-    public void testGetRightPositionWithDifferentPositions()
-    {
-        when(position1.getLat()).thenReturn(-1.0);
-        when(position1.getLng()).thenReturn(-1.0);
-        when(position2.getLat()).thenReturn(2.0);
-        when(position2.getLng()).thenReturn(2.0);
-
-        Position result = Utility.getRightPosition(positionsRequest);
-
-        assert(Objects.equals(position2.getLat(), result.getLat()));
-        assert(Objects.equals(position2.getLng(), result.getLng()));
-    }
-
-    @Test
-    public void testGetRightPositionWithSamePositions()
-    {
-        when(position1.getLat()).thenReturn(0.0);
-        when(position1.getLng()).thenReturn(0.0);
-        when(position2.getLat()).thenReturn(0.0);
-        when(position2.getLng()).thenReturn(0.0);
-
-        Position result = Utility.getRightPosition(positionsRequest);
-
-        assert(Objects.equals(position2.getLat(), result.getLat()));
-        assert(Objects.equals(position2.getLng(), result.getLng()));
-    }
-
-    @Test
-    public void testGetUpperPositionWithDifferentPositions()
-    {
-        when(position1.getLat()).thenReturn(-1.0);
-        when(position1.getLng()).thenReturn(-1.0);
-        when(position2.getLat()).thenReturn(2.0);
-        when(position2.getLng()).thenReturn(2.0);
-
-        Position result = Utility.getUpperPosition(positionsRequest);
-
-        assert(Objects.equals(position2.getLat(), result.getLat()));
-        assert(Objects.equals(position2.getLng(), result.getLng()));
-    }
-
-    @Test
-    public void testGetUpperPositionWithSamePositions()
-    {
-        when(position1.getLat()).thenReturn(0.0);
-        when(position1.getLng()).thenReturn(0.0);
-        when(position2.getLat()).thenReturn(0.0);
-        when(position2.getLng()).thenReturn(0.0);
-
-        Position result = Utility.getUpperPosition(positionsRequest);
-
-        assert(Objects.equals(position2.getLat(), result.getLat()));
-        assert(Objects.equals(position2.getLng(), result.getLng()));
-    }
-
-    @Test
-    public void testGetLowerPositionWithDifferentPositions()
-    {
-        when(position1.getLat()).thenReturn(-1.0);
-        when(position1.getLng()).thenReturn(-1.0);
-        when(position2.getLat()).thenReturn(2.0);
-        when(position2.getLng()).thenReturn(2.0);
-
-        Position result = Utility.getLowerPosition(positionsRequest);
-
-        assert(Objects.equals(position1.getLat(), result.getLat()));
-        assert(Objects.equals(position1.getLng(), result.getLng()));
-    }
-
-    @Test
-    public void testGetLowerPositionWithSamePositions()
-    {
-        when(position1.getLat()).thenReturn(0.0);
-        when(position1.getLng()).thenReturn(0.0);
-        when(position2.getLat()).thenReturn(0.0);
-        when(position2.getLng()).thenReturn(0.0);
-
-        Position result = Utility.getLowerPosition(positionsRequest);
-
-        assert(Objects.equals(position1.getLat(), result.getLat()));
-        assert(Objects.equals(position1.getLng(), result.getLng()));
-    }
-
-    @Test
-    public void testPositionToJSONStringWith5DecimalPlacesNumbers()
-    {
-        when(position1.getLng()).thenReturn(0.00001);
-        when(position1.getLat()).thenReturn(0.00002);
-
-        String result = Utility.positionToJSONString(position1);
-        String expected = "{ lng: 0.00001, lat: 0.00002 }";
-
-        assert(Objects.equals(result, expected));
-    }
-
-    @Test
-    public void testPositionToJSONStringWithPaddingAndRoundingRequired()
-    {
-        when(position1.getLng()).thenReturn(0.0);
-        when(position1.getLat()).thenReturn(0.000149);
-
-        String result = Utility.positionToJSONString(position1);
-        String expected = "{ lng: 0.00000, lat: 0.00015 }";
-
-        assert(Objects.equals(result, expected));
-    }
-
-    @Test
-    public void testCalculateDistanceWithDifferentPositions()
+    public void calculateDistance_should_returnCorrectValueWhenRoundedUpToFiveDecimalPlaces_whenDifferentPositionsAreGiven()
     {
         when(position1.getLng()).thenReturn(0.1);
         when(position1.getLat()).thenReturn(-0.2);
         when(position2.getLng()).thenReturn(0.1);
         when(position2.getLat()).thenReturn(-0.3);
 
-        Double result = Utility.calculateDistance(position1, position2);
+        Double result = utility.calculateDistance(position1, position2);
+
 
         DecimalFormat df = new DecimalFormat("#.#####");
         df.setRoundingMode(RoundingMode.HALF_EVEN);
@@ -170,14 +66,14 @@ public class UtilityTests
     }
 
     @Test
-    public void testCalculateDistanceWithSamePositions()
+    public void calculateDistance_should_returnZero_whenSamePositionsAreGiven()
     {
         when(position1.getLng()).thenReturn(0.1);
         when(position1.getLat()).thenReturn(0.2);
         when(position2.getLng()).thenReturn(0.1);
         when(position2.getLat()).thenReturn(0.2);
 
-        Double result = Utility.calculateDistance(position1, position2);
+        Double result = utility.calculateDistance(position1, position2);
 
         DecimalFormat df = new DecimalFormat("#.#####");
         df.setRoundingMode(RoundingMode.HALF_EVEN);
@@ -187,7 +83,7 @@ public class UtilityTests
     }
 
     @Test
-    public void testGetRegionEdges()
+    public void getRegionEdges_should_returnCorrectListOfEdges_whenValidVerticesAreGiven()
     {
         when(vertices.get(0)).thenReturn(new Position(0.0,0.0));
         when(vertices.get(1)).thenReturn(new Position(0.1,0.1));
@@ -195,7 +91,7 @@ public class UtilityTests
         when(vertices.get(3)).thenReturn(new Position(0.0,0.0));
         when(vertices.size()).thenReturn(4);
 
-        ArrayList<PositionsRequest> result = Utility.getRegionEdges(region);
+        ArrayList<PositionsRequest> result = utility.getRegionEdges(region);
 
         for (int i = 0; i<result.size(); i++ )
         {
@@ -204,7 +100,7 @@ public class UtilityTests
         }
     }
     @Test
-    public void testIsEdgeIntersectWithRayWithEdgeOnRightAndIntersects()
+    public void isEdgeIntersectWithRay_should_returnTrue_whenVertexIsOnTheLeftOfTheEdgeAndIntersectWithRay()
     {
         when(position1.getLng()).thenReturn(0.1);
         when(position1.getLat()).thenReturn(0.-1);
@@ -213,28 +109,28 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(0.0);
         when(vertex.getLat()).thenReturn(0.0);
 
-        boolean result = Utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
 
         assert(result);
     }
 
     @Test
-    public void testIsEdgeIntersectWithRayWithEdgeOnTheLeftOfVertex()
+    public void isEdgeIntersectWithRay_should_returnFalse_whenTheVertexIsOnTheRightOfTheEdge()
     {
         when(position1.getLng()).thenReturn(0.-1);
         when(position1.getLat()).thenReturn(0.0);
         when(position2.getLng()).thenReturn(0.-2);
-        when(position2.getLat()).thenReturn(0.0);
+        when(position2.getLat()).thenReturn(0.1);
         when(vertex.getLng()).thenReturn(0.0);
         when(vertex.getLat()).thenReturn(0.0);
 
-        boolean result = Utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
 
         assert(!result);
     }
 
     @Test
-    public void testIsEdgeIntersectWithRayWithEdgeHigherThanVertex()
+    public void isEdgeIntersectWithRay_should_returnFalse_whenTheVertexIsBelowTheWholeEdge()
     {
         when(position1.getLng()).thenReturn(0.1);
         when(position1.getLat()).thenReturn(0.1);
@@ -243,13 +139,13 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(0.0);
         when(vertex.getLat()).thenReturn(0.0);
 
-        boolean result = Utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
 
         assert(!result);
     }
 
     @Test
-    public void testIsEdgeIntersectWithRayWithEdgeLowerThanVertex()
+    public void isEdgeIntersectWithRay_should_returnFalse_whenTheVertexIsAboveTheWholeEdge()
     {
         when(position1.getLng()).thenReturn(0.1);
         when(position1.getLat()).thenReturn(0.-1);
@@ -258,26 +154,228 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(0.0);
         when(vertex.getLat()).thenReturn(0.0);
 
-        boolean result = Utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
 
         assert(!result);
     }
 
     @Test
-    public void testIsEdgeIntersectWithRayWithOnePositionOverlapWithVertex()
+    public void isEdgeIntersectWithRay_should_returnFalse_whenWithTheVertexOverlapWithOneEndPointOfTheEdge()
     {
         when(position1.getLng()).thenReturn(0.0);
         when(position1.getLat()).thenReturn(0.0);
         when(position2.getLng()).thenReturn(0.2);
-        when(position2.getLat()).thenReturn(0.-2);
+        when(position2.getLat()).thenReturn(-0.2);
         when(vertex.getLng()).thenReturn(0.0);
         when(vertex.getLat()).thenReturn(0.0);
 
-        boolean result = Utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+
+        assert(!result);
+    }
+
+    @Test
+    public void isEdgeIntersectWithRay_should_returnTrue_whenTheVertexHasTheSameYCoordinateWithOneEndPointOfTheEdge()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.2);
+        when(position2.getLat()).thenReturn(-0.2);
+        when(vertex.getLng()).thenReturn(-0.1);
+        when(vertex.getLat()).thenReturn(-0.2);
+
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
 
         assert(result);
     }
 
+    @Test
+    public void isEdgeIntersectWithRay_should_returnFalse_whenTheVertexIsOnTheEdge()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.2);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(0.1);
+        when(vertex.getLat()).thenReturn(0.1);
 
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+
+        assert(!result);
+    }
+
+    @Test
+    public void isEdgeIntersectWithRay_should_returnFalse_whenWithTheVertexOverlapWithOneEndPointOfTheEdgeAndEdgeIsVertical()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.0);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(0.0);
+        when(vertex.getLat()).thenReturn(0.2);
+
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+
+        assert(!result);
+    }
+
+    @Test
+    public void isEdgeIntersectWithRay_should_returnTrue_whenTheVertexHasTheSameYCoordinateWithOneEndPointOfTheEdgeAndEdgeIsVertical()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.0);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(-0.1);
+        when(vertex.getLat()).thenReturn(0.2);
+
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+
+        assert(result);
+    }
+
+    @Test
+    public void isEdgeIntersectWithRay_should_returnFalse_whenTheVertexIsOnTheEdgeAndEdgeIsVertical()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.0);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(0.0);
+        when(vertex.getLat()).thenReturn(0.1);
+
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+
+        assert(!result);
+    }
+
+
+    @Test
+    public void isEdgeIntersectWithRay_should_returnFalse_whenTheEdgeIsHorizontal()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.1);
+        when(position2.getLng()).thenReturn(0.1);
+        when(position2.getLat()).thenReturn(0.1);
+        when(vertex.getLng()).thenReturn(-0.1);
+        when(vertex.getLat()).thenReturn(0.1);
+
+        boolean result = utility.isEdgeIntersectWithRay(vertex,positionsRequest);
+
+        assert(!result);
+    }
+
+    @Test
+    public void isVertexOnEdge_should_returnTrue_whenTheVertexIsOnEdge()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.2);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(0.1);
+        when(vertex.getLat()).thenReturn(0.1);
+
+        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+
+        assert(result);
+    }
+
+    @Test
+    public void isVertexOnEdge_should_returnTrue_whenTheVertexIsOnEdgeAndEdgeIsVertical()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.0);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(0.0);
+        when(vertex.getLat()).thenReturn(0.1);
+
+        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+
+        assert(result);
+    }
+
+    @Test
+    public void isVertexOnEdge_should_returnTrue_whenTheVertexIsOnEdgeAndEdgeIsHorizontal()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.2);
+        when(position2.getLat()).thenReturn(0.0);
+        when(vertex.getLng()).thenReturn(0.1);
+        when(vertex.getLat()).thenReturn(0.0);
+
+        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+
+        assert(result);
+    }
+
+    @Test
+    public void isVertexOnEdge_should_returnTrue_whenTheVertexIsAboveTheWholeEdge()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.2);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(0.1);
+        when(vertex.getLat()).thenReturn(0.2);
+
+        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+
+        System.out.println(result);
+
+        assert(!result);
+    }
+
+    @Test
+    public void isVertexOnEdge_should_returnTrue_whenTheVertexIsBelowTheWholeEdge()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.2);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(0.1);
+        when(vertex.getLat()).thenReturn(0.-2);
+
+        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+
+        System.out.println(result);
+
+        assert(!result);
+    }
+
+    @Test
+    public void isVertexOnEdge_should_returnTrue_whenTheVertexIsOnTheLeftOfTheWholeEdge()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.2);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(-0.1);
+        when(vertex.getLat()).thenReturn(0.0);
+
+        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+
+        System.out.println(result);
+
+        assert(!result);
+    }
+
+    @Test
+    public void isVertexOnEdge_should_returnTrue_whenTheVertexIsOnTheRightOfTheWholeEdge()
+    {
+        when(position1.getLng()).thenReturn(0.0);
+        when(position1.getLat()).thenReturn(0.0);
+        when(position2.getLng()).thenReturn(0.2);
+        when(position2.getLat()).thenReturn(0.2);
+        when(vertex.getLng()).thenReturn(0.3);
+        when(vertex.getLat()).thenReturn(0.3);
+
+        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+
+        System.out.println(result);
+
+        assert(!result);
+    }
 
 }

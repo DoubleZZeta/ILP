@@ -6,7 +6,7 @@ curl -X POST \
           "lat": 1
         },
         "position2":{
-          "lng": 2,
+          "lng": ,
           "lat": 2
         }
       }' \

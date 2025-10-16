@@ -1,77 +1,55 @@
 package uk.ac.ed.acp.cw2.utility;
 
+import org.springframework.stereotype.Component;
 import uk.ac.ed.acp.cw2.data.Position;
 import uk.ac.ed.acp.cw2.data.PositionsRequest;
 import uk.ac.ed.acp.cw2.data.Region;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
+@Component
 public class Utility
 {
-    public static Position getRightPosition(PositionsRequest edge)
+    public boolean isVertexOnEdge(Position vertex, PositionsRequest edge)
     {
-        Position position1 = edge.getPosition1();
-        Position position2 = edge.getPosition2();
+        Double x1 = edge.getPosition1().getLng();
+        Double y1 = edge.getPosition1().getLat();
+        Double x2 = edge.getPosition2().getLng();
+        Double y2 = edge.getPosition2().getLat();
+        Double xv = vertex.getLng();
+        Double yv = vertex.getLat();
 
-        if (position1.getLng() >= position2.getLng())
+        //Gradient check
+        if (Math.abs((y2-y1)*(xv-x1) - (yv-y1)*(x2-x1)) <= 1e-9)
         {
-            return position1;
+            //Boundary checks
+            if (Math.min(y1, y2) <= yv && yv <= Math.max(y1, y2))
+            {
+                if (Math.min(x1, x2) <= xv && xv <= Math.max(x1, x2))
+                {
+                    return true;
+                }
+            }
         }
-        else
-        {
-            return position2;
-        }
+        return false;
     }
 
-    public static Position getUpperPosition(PositionsRequest edge)
-    {
-        Position position1 = edge.getPosition1();
-        Position position2 = edge.getPosition2();
 
-        if (position1.getLat() >= position2.getLat())
-        {
-            return position1;
-        }
-        else
-        {
-            return position2;
-        }
-    }
-
-    public static Position getLowerPosition(PositionsRequest edge)
-    {
-        Position position1 = edge.getPosition1();
-        Position position2 = edge.getPosition2();
-
-        if (position1.getLat() <= position2.getLat())
-        {
-            return position1;
-        }
-        else
-        {
-            return position2;
-        }
-    }
-
-    public static String positionToJSONString(Position position)
-    {
-        return String.format("{ lng: %.5f, lat: %.5f }", position.getLng(), position.getLat());
-    }
-
-    public static Double calculateDistance(Position position1, Position position2)
+    public Double calculateDistance(Position position1, Position position2)
     {
         Double lng1 = position1.getLng();
         Double lat1 = position1.getLat();
         Double lng2 = position2.getLng();
         Double lat2 = position2.getLat();
 
-        Double lngDiff = lng2 - lng1;
-        Double latDiff = lat2 - lat1;
+        double lngDiff = lng2 - lng1;
+        double latDiff = lat2 - lat1;
 
         return Math.sqrt(Math.pow(lngDiff, 2) + Math.pow(latDiff, 2));
     }
 
-    public static ArrayList<PositionsRequest> getRegionEdges(Region region)
+    public ArrayList<PositionsRequest> getRegionEdges(Region region)
     {
         ArrayList<Position> vertices = region.getVertices();
 
@@ -88,25 +66,38 @@ public class Utility
         return edges;
     }
 
-    public static boolean isEdgeIntersectWithRay(Position vertex, PositionsRequest edge)
+    public boolean isEdgeIntersectWithRay(Position vertex, PositionsRequest edge)
     {
-        Position rightPosition = getRightPosition(edge);
-        Position lowerPosition = getLowerPosition(edge);
-        Position upperPosition = getUpperPosition(edge);
+        Double x1 = edge.getPosition1().getLng();
+        Double y1 = edge.getPosition1().getLat();
+        Double x2 = edge.getPosition2().getLng();
+        Double y2 = edge.getPosition2().getLat();
+        Double xv = vertex.getLng();
+        Double yv = vertex.getLat();
 
-        boolean EdgeOnRightOfVertex = true;
-        boolean EdgeIntersectWithRay = true;
-
-        if(rightPosition.getLng() < vertex.getLng())
+        //We don't take the horizontal line into consideration
+        //Also, if the vertex is on the right of the right most point of the edge then there is no intersection
+        if(Objects.equals(y1, y2) || Math.max(x1,x2) <= xv)
         {
-            EdgeOnRightOfVertex = false;
+            return false;
         }
 
-        if(upperPosition.getLat() < vertex.getLat() || lowerPosition.getLat() > vertex.getLat())
+        //Then consider when the ray is between two points of the edge
+        if(Math.min(y1,y2) <= yv && yv <= Math.max(y1,y2))
         {
-            EdgeIntersectWithRay = false;
+            //In the case where line is vertical, there must be an intersection
+            if(Objects.equals(x1, x2))
+            {
+                return true;
+             }
+            //Otherwise we calculate the x coordinate of the intersection
+            else
+            {
+                double m = (y2-y1)/(x2-x1);
+                double xi = (yv - y1)/m + x1;
+                return xv < xi;
+            }
         }
-
-        return EdgeOnRightOfVertex && EdgeIntersectWithRay;
+        return false;
     }
 }
