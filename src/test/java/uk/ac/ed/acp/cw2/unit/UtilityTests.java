@@ -12,8 +12,6 @@ import uk.ac.ed.acp.cw2.data.PositionsRequest;
 import uk.ac.ed.acp.cw2.data.Region;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -57,11 +55,6 @@ public class UtilityTests
 
         Double result = utility.calculateDistance(position1, position2);
 
-
-        DecimalFormat df = new DecimalFormat("#.#####");
-        df.setRoundingMode(RoundingMode.HALF_EVEN);
-        result = Double.parseDouble(df.format(result));
-
         assert(0.10000 == result);
     }
 
@@ -74,10 +67,6 @@ public class UtilityTests
         when(position2.getLat()).thenReturn(0.2);
 
         Double result = utility.calculateDistance(position1, position2);
-
-        DecimalFormat df = new DecimalFormat("#.#####");
-        df.setRoundingMode(RoundingMode.HALF_EVEN);
-        result = Double.parseDouble(df.format(result));
 
         assert(0.00000 == result);
     }
@@ -322,8 +311,6 @@ public class UtilityTests
 
         boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
 
-        System.out.println(result);
-
         assert(!result);
     }
 
@@ -338,8 +325,6 @@ public class UtilityTests
         when(vertex.getLat()).thenReturn(0.-2);
 
         boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
-
-        System.out.println(result);
 
         assert(!result);
     }
@@ -356,8 +341,6 @@ public class UtilityTests
 
         boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
 
-        System.out.println(result);
-
         assert(!result);
     }
 
@@ -372,8 +355,6 @@ public class UtilityTests
         when(vertex.getLat()).thenReturn(0.3);
 
         boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
-
-        System.out.println(result);
 
         assert(!result);
     }

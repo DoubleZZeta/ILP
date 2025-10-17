@@ -15,6 +15,10 @@ public class IsAngleMultipleOfValidator implements
     @Override
     public boolean isValid (Double angle, ConstraintValidatorContext context)
     {
+        if (angle == null)
+        {
+            return true;
+        }
         return angle % 22.5 == 0;
     }
 

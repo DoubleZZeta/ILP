@@ -1,13 +1,10 @@
 package uk.ac.ed.acp.cw2.service;
 
-import lombok.experimental.UtilityClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 @Service
@@ -22,30 +19,23 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public String distanceTo(PositionsRequest Request)
+    public Double distanceTo(PositionsRequest Request)
     {
         Position position1 = Request.getPosition1();
         Position position2 = Request.getPosition2();
 
-        Double distance = utility.calculateDistance(position1,position2);
-
-        return String.format("%.5f", distance);
+        return utility.calculateDistance(position1,position2);
     }
 
     @Override
-    public String isCloseTo(PositionsRequest Request)
+    public boolean isCloseTo(PositionsRequest Request)
     {
         Position position1 = Request.getPosition1();
         Position position2 = Request.getPosition2();
 
         Double distance = utility.calculateDistance(position1,position2);
-        DecimalFormat df = new DecimalFormat("#.#####");
-        df.setRoundingMode(RoundingMode.HALF_EVEN);
-        distance = Double.parseDouble(df.format(distance));
 
-        boolean result = distance.compareTo(unitLength) < 0;
-
-        return result ? "true" : "false";
+        return distance.compareTo(unitLength) < 0;
     }
 
     @Override
@@ -57,11 +47,11 @@ public class RestServiceImplementation implements RestService
         Double lng = unitLength * Math.cos(angle) + start.getLng();
         Double lat = unitLength * Math.sin(angle) + start.getLat();
 
-        return String.format("{ lng: %.5f, lat: %.5f }", lng, lat);
+        return String.format("{ \"lng\": %.5f, \"lat\": %.5f }", lng, lat);
     }
 
     @Override
-    public String isInRegion(PositionRegionRequest Request)
+    public boolean isInRegion(PositionRegionRequest Request)
     {
         Position position = Request.getPosition();
         Region region = Request.getRegion();
@@ -73,7 +63,7 @@ public class RestServiceImplementation implements RestService
         {
             if (utility.isVertexOnEdge(position,edge))
             {
-                return "true";
+                return true;
             }
             else if(utility.isEdgeIntersectWithRay(position, edge))
             {
@@ -81,7 +71,7 @@ public class RestServiceImplementation implements RestService
             }
         }
 
-        return count % 2 != 0 ? "true" : "false";
+        return count % 2 != 0;
     }
 
 }

@@ -19,6 +19,11 @@ public class IsRegionClosedValidator implements
     @Override
     public boolean isValid (ArrayList<Position> vertices,  ConstraintValidatorContext context)
     {
+        if (Objects.isNull(vertices))
+        {
+            return true;
+        }
+
         Position first = vertices.getFirst();
         Position last = vertices.getLast();
 

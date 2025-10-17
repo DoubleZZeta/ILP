@@ -50,13 +50,13 @@ public class ServiceController
     }
 
     @PostMapping("/distanceTo")
-    public String distanceTo(@Valid @RequestBody PositionsRequest request)
+    public Double distanceTo(@Valid @RequestBody PositionsRequest request)
     {
         return  restService.distanceTo(request);
     }
 
     @PostMapping("/isCloseTo")
-    public String isCloseTo(@Valid @RequestBody PositionsRequest request)
+    public boolean isCloseTo(@Valid @RequestBody PositionsRequest request)
     {
         return  restService.isCloseTo(request);
     }
@@ -68,7 +68,7 @@ public class ServiceController
     }
 
     @PostMapping("/isInRegion")
-    public String isInRegion(@Valid @RequestBody PositionRegionRequest request)
+    public boolean isInRegion(@Valid @RequestBody PositionRegionRequest request)
     {
         return  restService.isInRegion(request);
     }

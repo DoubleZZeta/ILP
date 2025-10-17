@@ -5,6 +5,8 @@ import uk.ac.ed.acp.cw2.data.Position;
 import uk.ac.ed.acp.cw2.data.PositionsRequest;
 import uk.ac.ed.acp.cw2.data.Region;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -46,7 +48,11 @@ public class Utility
         double lngDiff = lng2 - lng1;
         double latDiff = lat2 - lat1;
 
-        return Math.sqrt(Math.pow(lngDiff, 2) + Math.pow(latDiff, 2));
+        Double distance = Math.sqrt(Math.pow(lngDiff, 2) + Math.pow(latDiff, 2));
+        DecimalFormat df = new DecimalFormat("#.#####");
+        df.setRoundingMode(RoundingMode.HALF_EVEN);
+
+        return  Double.parseDouble(df.format(distance));
     }
 
     public ArrayList<PositionsRequest> getRegionEdges(Region region)

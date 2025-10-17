@@ -1,8 +1,8 @@
 package uk.ac.ed.acp.cw2.data;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
-import uk.ac.ed.acp.cw2.validation.IsRegionAPolygon;
 import uk.ac.ed.acp.cw2.validation.IsRegionClosed;
 
 import java.util.ArrayList;
@@ -16,8 +16,8 @@ public class Region
     @NotNull
     private String name;
 
-    @NotNull
     @IsRegionClosed
-    @IsRegionAPolygon
+    @Size(min = 4)
+    @NotNull
     private ArrayList<Position> vertices;
 }
