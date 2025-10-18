@@ -6,6 +6,9 @@ import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
+/**
+ * Validator Interface for checking if the angle is a multiple of 22.5
+ */
 @Documented
 @Constraint(validatedBy = IsAngleMultipleOfValidator.class)
 @Target( { ElementType.METHOD, ElementType.FIELD })

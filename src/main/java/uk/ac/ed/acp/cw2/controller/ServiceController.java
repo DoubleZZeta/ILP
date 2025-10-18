@@ -12,6 +12,7 @@ import uk.ac.ed.acp.cw2.data.PositionAngleRequest;
 import uk.ac.ed.acp.cw2.data.PositionRegionRequest;
 import uk.ac.ed.acp.cw2.data.PositionsRequest;
 import uk.ac.ed.acp.cw2.service.RestService;
+import uk.ac.ed.acp.cw2.utility.Utility;
 
 import java.net.URL;
 import java.time.Instant;
@@ -25,14 +26,18 @@ import java.time.Instant;
 @RequestMapping("/api/v1")
 public class ServiceController
 {
-    @Autowired
-    RestService restService;
-
     private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
+    private final RestService restService;
+
+    //Inject the service
+    @Autowired
+    public ServiceController(final RestService restService)
+    {
+        this.restService = restService;
+    }
 
     @Value("${ilp.service.url}")
     public URL serviceUrl;
-
 
     @GetMapping("/")
     public String index()

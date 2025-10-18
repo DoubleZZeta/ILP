@@ -7,14 +7,22 @@ import uk.ac.ed.acp.cw2.utility.Utility;
 
 import java.util.ArrayList;
 
+//Service interface implementation
+/**
+ * Service Implementation class that implements the service interface,
+ * providing actual functionality.
+ */
 @Service
 public class RestServiceImplementation implements RestService
 {
+
     private final Utility utility;
     private static final Double unitLength = 0.00015;
 
+    //Dependency inject the utility clas
     @Autowired
-    public RestServiceImplementation(final Utility utility) {
+    public RestServiceImplementation(final Utility utility)
+    {
         this.utility = utility;
     }
 
@@ -35,6 +43,7 @@ public class RestServiceImplementation implements RestService
 
         Double distance = utility.calculateDistance(position1,position2);
 
+        //If the distance is less than 0.00015, return true
         return distance.compareTo(unitLength) < 0;
     }
 
@@ -43,35 +52,42 @@ public class RestServiceImplementation implements RestService
         Position start = Request.getStart();
         Double angle = Request.getAngle();
 
+        //Calculate the new position using trigonometric functions
         angle = Math.toRadians(angle);
         Double lng = unitLength * Math.cos(angle) + start.getLng();
         Double lat = unitLength * Math.sin(angle) + start.getLat();
 
+        //Make sure that the return lng lat pair is in five decimal places
         return String.format("{ \"lng\": %.5f, \"lat\": %.5f }", lng, lat);
     }
 
     @Override
     public boolean isInRegion(PositionRegionRequest Request)
     {
+        //Ray casting algorithm
         Position position = Request.getPosition();
         Region region = Request.getRegion();
 
+        //Number of intersection between the ray and the region edges
         int count = 0;
         ArrayList<PositionsRequest> edges = utility.getRegionEdges(region);
 
+        //Iterate through all edges
         for(PositionsRequest edge : edges)
         {
-            if (utility.isVertexOnEdge(position,edge))
+            //If the position is on the edge of the region, return true directly
+            if (utility.isPositionOnEdge(position,edge))
             {
                 return true;
             }
+            //Else check if the ray intersect with the edge
             else if(utility.isEdgeIntersectWithRay(position, edge))
             {
                 count++;
             }
         }
 
+        //If the number of intersection is odd, then the position is inside the region
         return count % 2 != 0;
     }
-
 }

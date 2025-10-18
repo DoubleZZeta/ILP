@@ -4,7 +4,9 @@ import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
-
+/**
+ * Validator Interface for checking if the region is closed
+ */
 @Documented
 @Constraint(validatedBy = IsRegionClosedValidator.class)
 @Target( { ElementType.METHOD, ElementType.FIELD })

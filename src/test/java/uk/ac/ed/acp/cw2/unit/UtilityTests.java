@@ -14,7 +14,10 @@ import uk.ac.ed.acp.cw2.utility.Utility;
 
 import java.util.ArrayList;
 import java.util.Objects;
-
+/**
+ * Test class that conduct unit test for the Utility class.
+ * Mocks some of the DTOs to ensure accurate results.
+ */
 public class UtilityTests
 {
     Utility utility = new Utility();
@@ -41,7 +44,6 @@ public class UtilityTests
     public void setup()
     {
         MockitoAnnotations.openMocks(this);
-
         positionsRequest = new PositionsRequest(position1, position2);
     }
 
@@ -264,7 +266,7 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(0.1);
         when(vertex.getLat()).thenReturn(0.1);
 
-        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+        boolean result = utility.isPositionOnEdge(vertex,positionsRequest);
 
         assert(result);
     }
@@ -279,7 +281,7 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(0.0);
         when(vertex.getLat()).thenReturn(0.1);
 
-        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+        boolean result = utility.isPositionOnEdge(vertex,positionsRequest);
 
         assert(result);
     }
@@ -294,7 +296,7 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(0.1);
         when(vertex.getLat()).thenReturn(0.0);
 
-        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+        boolean result = utility.isPositionOnEdge(vertex,positionsRequest);
 
         assert(result);
     }
@@ -309,7 +311,7 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(0.1);
         when(vertex.getLat()).thenReturn(0.2);
 
-        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+        boolean result = utility.isPositionOnEdge(vertex,positionsRequest);
 
         assert(!result);
     }
@@ -324,7 +326,7 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(0.1);
         when(vertex.getLat()).thenReturn(0.-2);
 
-        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+        boolean result = utility.isPositionOnEdge(vertex,positionsRequest);
 
         assert(!result);
     }
@@ -339,7 +341,7 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(-0.1);
         when(vertex.getLat()).thenReturn(0.0);
 
-        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+        boolean result = utility.isPositionOnEdge(vertex,positionsRequest);
 
         assert(!result);
     }
@@ -354,9 +356,8 @@ public class UtilityTests
         when(vertex.getLng()).thenReturn(0.3);
         when(vertex.getLat()).thenReturn(0.3);
 
-        boolean result = utility.isVertexOnEdge(vertex,positionsRequest);
+        boolean result = utility.isPositionOnEdge(vertex,positionsRequest);
 
         assert(!result);
     }
-
 }

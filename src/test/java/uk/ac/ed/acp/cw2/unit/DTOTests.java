@@ -10,6 +10,11 @@ import uk.ac.ed.acp.cw2.data.*;
 import java.util.ArrayList;
 import java.util.Set;
 
+/**
+ * Test class that conduct unit test for the DTO.
+ * Checks if the DTO can identify the invalid data.
+ */
+
 public class DTOTests
 {
     private static Validator validator;

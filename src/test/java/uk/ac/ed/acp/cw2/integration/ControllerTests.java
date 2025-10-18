@@ -17,6 +17,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Test class that conduct integration test for each end point.
+ * The mockMVC is used to create a mock running environment.
+ */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         properties =
@@ -150,8 +154,6 @@ public class ControllerTests
                     .andExpect(status().isBadRequest());
     }
 
-
-
     @Test
     public void distanceTo_should_return400_whenOnePositionIsMissingStatus400() throws Exception
     {
@@ -177,6 +179,46 @@ public class ControllerTests
                                     "\"lat\": 55.942617" +
                                 "}," +
                                 "\"Megatron\": {" +
+                                    "\"lng\": -3.192473" +
+                                    "\"lat\": 55.942617" +
+                                "}" +
+                            "}";
+
+        this.mockMvc.perform(post("/api/v1/distanceTo")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
+                    .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void distanceTo_should_return400_whenLatOutOfRange() throws Exception
+    {
+        String requestBody = "{" +
+                                "\"Position1\": {" +
+                                    "\"lng\": -91" +
+                                    "\"lat\": 55.942617" +
+                                "}," +
+                                "\"Position2\": {" +
+                                    "\"lng\": -3.192473" +
+                                    "\"lat\": 55.942617" +
+                                "}" +
+                            "}";
+
+        this.mockMvc.perform(post("/api/v1/distanceTo")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
+                    .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void distanceTo_should_return400_whenLngOutOfRange() throws Exception
+    {
+        String requestBody = "{" +
+                                "\"Position1\": {" +
+                                    "\"lng\": -90" +
+                                    "\"lat\": 181" +
+                                "}," +
+                                "\"Position2\": {" +
                                     "\"lng\": -3.192473" +
                                     "\"lat\": 55.942617" +
                                 "}" +
@@ -270,86 +312,6 @@ public class ControllerTests
     }
 
     @Test
-    public void isCloseTo_should_return400_whenLngOfOnePositionIsNull() throws Exception
-    {
-        String requestBody = "{" +
-                                "\"position1\": {" +
-                                    "\"lng\": ," +
-                                    "\"lat\": 55.942617" +
-                                "}," +
-                                "\"position2\": {" +
-                                    "\"lng\": -3.192473," +
-                                    "\"lat\": 55.942617" +
-                                "}" +
-                            "}";
-
-        this.mockMvc.perform(post("/api/v1/isCloseTo")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestBody))
-                    .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void isCloseTo_should_return400_whenLatOfOnePositionIsNull() throws Exception
-    {
-        String requestBody = "{" +
-                                "\"position1\": {" +
-                                    "\"lng\": -3.192473," +
-                                    "\"lat\": " +
-                                "}," +
-                                "\"position2\": {" +
-                                    "\"lng\": -3.192473," +
-                                    "\"lat\": 55.942617" +
-                                "}" +
-                            "}";
-
-        this.mockMvc.perform(post("/api/v1/isCloseTo")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestBody))
-                    .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void isCloseTo_should_return400_whenLngAndLatOfOnePositionAreNull() throws Exception
-    {
-        String requestBody = "{" +
-                                "\"position1\": {" +
-                                    "\"lng\": ," +
-                                    "\"lat\": " +
-                                "}," +
-                                "\"position2\": {" +
-                                    "\"lng\": -3.192473," +
-                                    "\"lat\": 55.942617" +
-                                "}" +
-                            "}";
-
-        this.mockMvc.perform(post("/api/v1/isCloseTo")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestBody))
-                    .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void isCloseTo_should_return400_whenNameOfTheFieldsAreInvalid() throws Exception
-    {
-        String requestBody = "{" +
-                                "\"FullArmour_Gundam_DoubleZeta\": {" +
-                                    "\"lng\": -3.192473," +
-                                    "\"lat\": 55.942617" +
-                                "}," +
-                                "\"Qubeley\": {" +
-                                    "\"lng\": -3.192473" +
-                                    "\"lat\": 55.942617" +
-                                "}" +
-                            "}";
-
-        this.mockMvc.perform(post("/api/v1/distanceTo")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(requestBody))
-                    .andExpect(status().isBadRequest());
-    }
-
-    @Test
     public void nextPosition_should_returnCorrectLngLatPairAnd200_whenAngleIsZero() throws Exception
     {
         Position position = new Position(0.0, 0.0);
@@ -421,40 +383,6 @@ public class ControllerTests
                         .content(requestBody))
                 .andExpect(content().string("{ \"lng\": -0.00011, \"lat\": 0.00025 }"))
                 .andExpect(status().is(200));
-    }
-
-    @Test
-    public void nextPosition_should_return400_whenLngOfStartIsNull() throws Exception
-    {
-        String requestBody = "{" +
-                                "\"start\": {" +
-                                    "\"lng\": ," +
-                                    "\"lat\": 0.0" +
-                                "}," +
-                                "\"angle\": 135"+
-                            "}";
-
-        this.mockMvc.perform(post("/api/v1/nextPosition")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void nextPosition_should_return400_whenLatOfStartIsNull() throws Exception
-    {
-        String requestBody = "{" +
-                                "\"start\": {" +
-                                    "\"lng\": 0.0," +
-                                    "\"lat\": " +
-                                "}," +
-                                "\"angle\": 135"+
-                            "}";
-
-        this.mockMvc.perform(post("/api/v1/nextPosition")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -556,7 +484,7 @@ public class ControllerTests
     }
 
     @Test
-    public void isInRegion_should_returnTrueAnd200_whenThePositionIsOutsideASquareRegion() throws Exception
+    public void isInRegion_should_returnFalseAnd200_whenThePositionIsOutsideASquareRegion() throws Exception
     {
         Position position = new Position(-0.01,0.01);
         ArrayList<Position> vertices =  new ArrayList<>();
@@ -576,7 +504,27 @@ public class ControllerTests
     }
 
     @Test
-    public void isInRegion_should_returnTrueAnd200_whenThePositionIsOnASquareRegion() throws Exception
+    public void isInRegion_should_returnTrueAnd200_whenThePositionIsOnAnEdgeOfTheSquareRegion() throws Exception
+    {
+        Position position = new Position(0.0,0.05);
+        ArrayList<Position> vertices =  new ArrayList<>();
+        vertices.add(new Position(0.0,0.0));
+        vertices.add(new Position(0.0,0.1));
+        vertices.add(new Position(0.1,0.1));
+        vertices.add(new Position(0.1,0.0));
+        vertices.add(new Position(0.0,0.0));
+        Region region = new Region("Name",vertices);
+        PositionRegionRequest requestBody = new PositionRegionRequest(position,region);
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("true"));
+    }
+
+    @Test
+    public void isInRegion_should_returnTrueAnd200_whenThePositionIsOnAVertexOfTheSquareRegion() throws Exception
     {
         Position position = new Position(0.0,0.1);
         ArrayList<Position> vertices =  new ArrayList<>();
@@ -595,6 +543,347 @@ public class ControllerTests
                     .andExpect(content().string("true"));
     }
 
+    @Test
+    public void isInRegion_should_returnTrueAnd200_whenThePositionIsInsideATriangleRegion() throws Exception
+    {
+        Position position = new Position(0.05,0.05);
+        ArrayList<Position> vertices =  new ArrayList<>();
+        vertices.add(new Position(0.0,0.0));
+        vertices.add(new Position(0.1,0.1));
+        vertices.add(new Position(0.2,0.0));
+        vertices.add(new Position(0.0,0.0));
+        Region region = new Region("Name",vertices);
+        PositionRegionRequest requestBody = new PositionRegionRequest(position,region);
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("true"));
+    }
+
+    @Test
+    public void isInRegion_should_returnFalseAnd200_whenThePositionIsOutsideATriangleRegion() throws Exception
+    {
+        Position position = new Position(-0.05,0.05);
+        ArrayList<Position> vertices =  new ArrayList<>();
+        vertices.add(new Position(0.0,0.0));
+        vertices.add(new Position(0.1,0.1));
+        vertices.add(new Position(0.2,0.0));
+        vertices.add(new Position(0.0,0.0));
+        Region region = new Region("Name",vertices);
+        PositionRegionRequest requestBody = new PositionRegionRequest(position,region);
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("false"));
+    }
+
+    @Test
+    public void isInRegion_should_returnFalseAnd200_whenThePositionIsOnTheRightOfATriangleRegion() throws Exception
+    {
+        Position position = new Position(0.2,0.05);
+        ArrayList<Position> vertices =  new ArrayList<>();
+        vertices.add(new Position(0.0,0.0));
+        vertices.add(new Position(0.1,0.1));
+        vertices.add(new Position(0.2,0.0));
+        vertices.add(new Position(0.0,0.0));
+        Region region = new Region("Name",vertices);
+        PositionRegionRequest requestBody = new PositionRegionRequest(position,region);
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("false"));
+    }
+
+    @Test
+    public void isInRegion_should_returnTrueAnd200_whenThePositionIsOnAnEdgeOfTheTriangleRegion() throws Exception
+    {
+        Position position = new Position(0.2,0.2/3);
+        ArrayList<Position> vertices =  new ArrayList<>();
+        vertices.add(new Position(0.0,0.0));
+        vertices.add(new Position(0.3,0.1));
+        vertices.add(new Position(0.3,0.0));
+        vertices.add(new Position(0.0,0.0));
+        Region region = new Region("Name",vertices);
+        PositionRegionRequest requestBody = new PositionRegionRequest(position,region);
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("true"));
+    }
 
 
+    @Test
+    public void isInRegion_should_returnTrueAnd200_whenThePositionIsOnAVertexOfTheTriangleRegion() throws Exception
+    {
+        Position position = new Position(0.1,0.1);
+        ArrayList<Position> vertices =  new ArrayList<>();
+        vertices.add(new Position(0.0,0.0));
+        vertices.add(new Position(0.1,0.1));
+        vertices.add(new Position(0.2,0.0));
+        vertices.add(new Position(0.0,0.0));
+        Region region = new Region("Name",vertices);
+        PositionRegionRequest requestBody = new PositionRegionRequest(position,region);
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("true"));
+    }
+
+    @Test
+    public void isInRegion_should_returnTrueAnd200_whenMoreDataIsGiven() throws Exception
+    {
+        String requestBody = "{" +
+                                "\"position\": {" +
+                                    "\"lng\": 1.0," +
+                                    "\"lat\": 1.0" +
+                                "}," +
+                                "\"position\": {" +
+                                    "\"lng\": 0.0," +
+                                    "\"lat\": 0.1" +
+                                "}," +
+                                "\"region\": {" +
+                                    "\"name\": \"Name\"," +
+                                    "\"vertices\": [" +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.1" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.1," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.0" +
+                                    "}" +
+                                "]" +
+                            "}" +
+                        "}";
+
+
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string("true"));
+
+    }
+
+    @Test
+    public void isInRegion_should_return400_whenThePositionIsMissing() throws Exception
+    {
+        String requestBody = "{" +
+                                "\"region\": {" +
+                                    "\"name\": \"Name\"," +
+                                    "\"vertices\": [" +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.1" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.1," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.0" +
+                                        "}" +
+                                    "]" +
+                                "}" +
+                            "}";
+
+
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
+                    .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void isInRegion_should_return400_whenRegionIsMissing() throws Exception
+    {
+        String requestBody = "{" +
+                                "\"position\": {" +
+                                    "\"lng\": 0.0," +
+                                    "\"lat\": 0.0" +
+                                "}" +
+                            "}";
+
+
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
+                    .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void isInRegion_should_return400_whenTheNameIsMissing() throws Exception
+    {
+        String requestBody = "{" +
+                                "\"position\": {" +
+                                    "\"lng\": 0.0," +
+                                    "\"lat\": 0.0" +
+                                "}," +
+                                    "\"region\": {" +
+                                        "\"vertices\": [" +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.1" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.1," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.0" +
+                                        "}" +
+                                    "]" +
+                                "}" +
+                            "}";
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
+                    .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void isInRegion_should_return400_whenVerticesIsMissing() throws Exception
+    {
+        String requestBody = "{" +
+                "\"position\": {" +
+                "\"lng\": 0.0," +
+                "\"lat\": 0.0" +
+                "}," +
+                "\"region\": {" +
+                "\"name\": \"Name\"" +
+                "}" +
+                "}";
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
+                    .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void isInRegion_should_return400_whenNameIsNull() throws Exception
+    {
+        String requestBody = "{" +
+                            "\"position\": {" +
+                                "\"lng\": 0.0," +
+                                "\"lat\": 0.0" +
+                            "}," +
+                            "\"region\": {" +
+                                    "\"name\": ," +
+                                    "\"vertices\": [" +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.1" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.1," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.0" +
+                                        "}" +
+                                    "]" +
+                                "}" +
+                            "}";
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                        .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void isInRegion_should_return400_whenVerticesIsNull() throws Exception
+    {
+        String requestBody = "{" +
+                                "\"position\": {" +
+                                    "\"lng\": 0.0," +
+                                    "\"lat\": 0.0" +
+                                "}," +
+                                    "\"region\": {" +
+                                        "\"name\": \"Name\"," +
+                                        "\"vertices\": [" +
+
+                                    "]" +
+                                "}" +
+                            "}";
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
+                    .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void isInRegion_should_return400_whenRegionIsNotClosed() throws Exception
+    {
+        String requestBody = "{" +
+                                "\"position\": {" +
+                                    "\"lng\": 0.0," +
+                                    "\"lat\": 0.0" +
+                                "}," +
+                                "\"region\": {" +
+                                    "\"name\": ," +
+                                    "\"vertices\": [" +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.1" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.1," +
+                                            "\"lat\": 0.0" +
+                                        "}," +
+                                        "{" +
+                                            "\"lng\": 0.0," +
+                                            "\"lat\": 0.2" +
+                                        "}" +
+                                    "]" +
+                                "}" +
+                            "}";
+
+        this.mockMvc.perform(post("/api/v1/isInRegion")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestBody))
+                    .andExpect(status().isBadRequest());
+    }
 }

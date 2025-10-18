@@ -14,6 +14,10 @@ import java.util.Objects;
 
 import static org.mockito.Mockito.when;
 
+/**
+ * Test class that conduct unit test for the service interface and implementation class
+ * Mocks the Utility class and part of the DTOs to ensure accurate results.
+ */
 public class ServiceTests
 {
 
@@ -131,8 +135,6 @@ public class ServiceTests
         assert(Objects.equals(result, "{ \"lng\": 0.00014, \"lat\": 0.00006 }"));
     }
 
-    //Do I need to test for all angles ...?
-
     @Test
     public void isInRegion_should_returnFalse_when_theNumberOfIntersectionWithRayIsEvenAndThePositionIsNotOnRegion()
     {
@@ -143,10 +145,10 @@ public class ServiceTests
         edges.add(new PositionsRequest(new Position(0.1,0.0), new Position(0.0,0.0)));
 
         when(utility.getRegionEdges(positionRegionRequest.getRegion())).thenReturn(edges);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(true);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(true);
@@ -167,10 +169,10 @@ public class ServiceTests
         edges.add(new PositionsRequest(new Position(0.1,0.0), new Position(0.0,0.0)));
 
         when(utility.getRegionEdges(positionRegionRequest.getRegion())).thenReturn(edges);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(true);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
@@ -184,9 +186,6 @@ public class ServiceTests
     @Test
     public void isInRegion_should_returnTrue_when_thePositionIsOnRegionAndNumberOfIntersectionIsEven()
     {
-        //Position(-0.05,0.05)
-        //Region(Position(0,0),Position(0,0.1),Position(0.1,0.1),Position(0.1,0),Position(0,0))
-
         ArrayList<PositionsRequest> edges =  new ArrayList<>();
         edges.add(new PositionsRequest(new Position(0.0,0.0), new Position(0.0,0.1)));
         edges.add(new PositionsRequest(new Position(0.0,0.1), new Position(0.1,0.1)));
@@ -194,10 +193,10 @@ public class ServiceTests
         edges.add(new PositionsRequest(new Position(0.1,0.0), new Position(0.0,0.0)));
 
         when(utility.getRegionEdges(positionRegionRequest.getRegion())).thenReturn(edges);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(true);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(true);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
@@ -211,9 +210,6 @@ public class ServiceTests
     @Test
     public void isInRegion_should_returnTrue_when_thePositionIsOnRegionAndNumberOfIntersectionIsOdd()
     {
-        //Position(-0.05,0.05)
-        //Region(Position(0,0),Position(0,0.1),Position(0.1,0.1),Position(0.1,0),Position(0,0))
-
         ArrayList<PositionsRequest> edges =  new ArrayList<>();
         edges.add(new PositionsRequest(new Position(0.0,0.0), new Position(0.0,0.1)));
         edges.add(new PositionsRequest(new Position(0.0,0.1), new Position(0.1,0.1)));
@@ -221,10 +217,10 @@ public class ServiceTests
         edges.add(new PositionsRequest(new Position(0.1,0.0), new Position(0.0,0.0)));
 
         when(utility.getRegionEdges(positionRegionRequest.getRegion())).thenReturn(edges);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(true);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(true);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(true);
@@ -238,9 +234,6 @@ public class ServiceTests
     @Test
     public void isInRegion_should_returnTrue_when_thePositionIsOnOneVertexOfTheRegion()
     {
-        //Position(-0.05,0.05)
-        //Region(Position(0,0),Position(0,0.1),Position(0.1,0.1),Position(0.1,0),Position(0,0))
-
         ArrayList<PositionsRequest> edges =  new ArrayList<>();
         edges.add(new PositionsRequest(new Position(0.0,0.0), new Position(0.0,0.1)));
         edges.add(new PositionsRequest(new Position(0.0,0.1), new Position(0.1,0.1)));
@@ -248,10 +241,10 @@ public class ServiceTests
         edges.add(new PositionsRequest(new Position(0.1,0.0), new Position(0.0,0.0)));
 
         when(utility.getRegionEdges(positionRegionRequest.getRegion())).thenReturn(edges);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(true);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(true);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
-        when(utility.isVertexOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(true);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(true);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
+        when(utility.isPositionOnEdge(positionRegionRequest.getPosition(),edges.get(3))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(0))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(1))).thenReturn(false);
         when(utility.isEdgeIntersectWithRay(positionRegionRequest.getPosition(),edges.get(2))).thenReturn(false);
@@ -261,6 +254,4 @@ public class ServiceTests
 
         assert(result);
     }
-
-
 }

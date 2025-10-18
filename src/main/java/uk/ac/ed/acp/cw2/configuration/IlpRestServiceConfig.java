@@ -8,10 +8,14 @@ import uk.ac.ed.acp.cw2.utility.Utility;
 
 import java.net.URL;
 
+/**
+ * Configuration class that is used for dependency injection
+ */
 @Configuration
 @EnableScheduling
 public class IlpRestServiceConfig
 {
+    // Dependency inject Utility class into RestServiceImplementation class
     @Bean
     public Utility  utility()
     {
