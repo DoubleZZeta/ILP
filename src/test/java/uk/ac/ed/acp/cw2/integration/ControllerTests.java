@@ -21,13 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test class that conduct integration test for each end point.
  * The mockMVC is used to create a mock running environment.
  */
-@SpringBootTest(
-        webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-        properties =
-                {
-                        "server.port=8080"
-                }
-)
+@SpringBootTest()
 @AutoConfigureMockMvc
 public class ControllerTests
 {
