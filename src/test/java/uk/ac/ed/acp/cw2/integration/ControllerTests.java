@@ -43,6 +43,7 @@ public class ControllerTests
     @Test
     public void uid_should_returnCorrectUidAnd200() throws Exception
     {
+        System.out.println();
         this.mockMvc.perform(get("/api/v1/uid")
                     .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
@@ -66,6 +67,14 @@ public class ControllerTests
     @Test
     public void distanceTo_should_return200_whenMoreDataIsGiven() throws Exception
     {
+        //language=JSON
+        String json = """
+                {
+                        "hello": 123,
+                        "Goodbye": 456
+                }
+                """;
+
         String requestBody = "{" +
                                 "\"position1\": {" +
                                     "\"lng\": -3.192473," +

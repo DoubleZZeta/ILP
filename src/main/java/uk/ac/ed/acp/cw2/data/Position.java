@@ -27,5 +27,4 @@ public class Position
     //Latitude should between -90 and 90
     @Range(min = -90, max = 90)
     private Double lat;
-
 }

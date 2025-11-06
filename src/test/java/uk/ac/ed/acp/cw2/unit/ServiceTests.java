@@ -75,6 +75,8 @@ public class ServiceTests
 
         boolean result = restService.isCloseTo(positionsRequest);
 
+        System.out.println();
+
         assert(!result);
     }
 
