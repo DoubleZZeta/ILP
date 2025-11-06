@@ -1,2 +1,3 @@
-# Getting Started
+# Getting Started #
+I hate myself 
 

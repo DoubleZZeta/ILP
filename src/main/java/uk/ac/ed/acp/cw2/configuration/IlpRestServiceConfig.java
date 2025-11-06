@@ -15,12 +15,30 @@ import java.net.URL;
 @EnableScheduling
 public class IlpRestServiceConfig
 {
+    private final String DEFAULT_ILP_ENDPOINT = "https://ilp-rest-2025-bvh6e9hschfagrgy.ukwest-01.azurewebsites.net/";
+
+    // Dependency inject the method to get url
+    @Bean
+    public String getEndpoint()
+    {
+        String endpoint = System.getenv("ILP_ENDPOINT");
+
+        if (endpoint == null || endpoint.isEmpty())
+        {
+            endpoint = DEFAULT_ILP_ENDPOINT;
+        }
+
+        return endpoint;
+    }
+
     // Dependency inject Utility class into RestServiceImplementation class
     @Bean
     public Utility  utility()
     {
         return new Utility();
     }
+
+
 
 
 }
