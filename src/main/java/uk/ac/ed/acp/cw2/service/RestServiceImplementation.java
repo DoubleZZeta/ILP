@@ -1,5 +1,6 @@
 package uk.ac.ed.acp.cw2.service;
 
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
@@ -89,5 +90,21 @@ public class RestServiceImplementation implements RestService
 
         //If the number of intersection is odd, then the position is inside the region
         return count % 2 != 0;
+    }
+
+    @Override
+    public ArrayList<Integer> droneWithCooling(ArrayList<Drone> drones, boolean coolingState)
+    {
+        ArrayList<Integer> dronesWithCooling = new ArrayList<>();
+
+        for (Drone drone : drones) {
+            if (drone.getCapability().getCooling() == coolingState)
+            {
+                dronesWithCooling.add(drone.getId());
+            }
+        }
+
+        return dronesWithCooling;
+
     }
 }

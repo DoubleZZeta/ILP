@@ -8,14 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
-import uk.ac.ed.acp.cw2.data.PositionAngleRequest;
-import uk.ac.ed.acp.cw2.data.PositionRegionRequest;
-import uk.ac.ed.acp.cw2.data.PositionsRequest;
+import uk.ac.ed.acp.cw2.data.*;
+import uk.ac.ed.acp.cw2.service.DataFetchService;
 import uk.ac.ed.acp.cw2.service.RestService;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
 import java.net.URL;
 import java.time.Instant;
+import java.util.ArrayList;
 
 /**
  * Controller class that handles various HTTP endpoints for the application.
@@ -28,12 +28,14 @@ public class ServiceController
 {
     private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
     private final RestService restService;
+    private final DataFetchService dataFetchService;
 
     //Inject the service
     @Autowired
-    public ServiceController(final RestService restService)
+    public ServiceController(final RestService restService, final DataFetchService dataFetchService)
     {
         this.restService = restService;
+        this.dataFetchService = dataFetchService;
     }
 
     @Value("${ilp.service.url}")
@@ -77,4 +79,19 @@ public class ServiceController
     {
         return  restService.isInRegion(request);
     }
+
+    @GetMapping("dronesWithCooling/{state}")
+    public ArrayList<Integer> dronesWithCooling(@PathVariable("state") boolean coolingState)
+    {
+        return restService.droneWithCooling(dataFetchService.getDrones(), coolingState);
+    }
+
+//    @GetMapping("/droneDetails/{id}")
+//    public Drone droneDetails(@PathVariable("id") Integer id)
+//    {
+//
+//    }
+
+
+
 }
