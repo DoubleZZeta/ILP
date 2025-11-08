@@ -93,18 +93,30 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public ArrayList<Integer> droneWithCooling(ArrayList<Drone> drones, boolean coolingState)
+    public ArrayList<Integer> droneWithCooling(ArrayList<Drone> drones, boolean state)
     {
         ArrayList<Integer> dronesWithCooling = new ArrayList<>();
 
         for (Drone drone : drones) {
-            if (drone.getCapability().getCooling() == coolingState)
+            if (drone.getCapability().getCooling() == state)
             {
                 dronesWithCooling.add(drone.getId());
             }
         }
 
         return dronesWithCooling;
+    }
 
+    @Override
+    public Drone droneDetails (ArrayList<Drone> drones, Integer droneId)
+    {
+        for(Drone drone : drones)
+        {
+            if (drone.getId().equals(droneId))
+            {
+                return drone;
+            }
+        }
+        return null;
     }
 }

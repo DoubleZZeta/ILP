@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.data.*;
@@ -80,17 +81,24 @@ public class ServiceController
         return  restService.isInRegion(request);
     }
 
-    @GetMapping("dronesWithCooling/{state}")
-    public ArrayList<Integer> dronesWithCooling(@PathVariable("state") boolean coolingState)
+    @GetMapping("/dronesWithCooling/{state}")
+    public ArrayList<Integer> dronesWithCooling(@PathVariable("state") boolean state)
     {
-        return restService.droneWithCooling(dataFetchService.getDrones(), coolingState);
+        return restService.droneWithCooling(dataFetchService.getDrones(), state);
     }
 
-//    @GetMapping("/droneDetails/{id}")
-//    public Drone droneDetails(@PathVariable("id") Integer id)
-//    {
-//
-//    }
+    @GetMapping("/droneDetails/{id}")
+    public ResponseEntity<Drone> droneDetails(@PathVariable("id") Integer id)
+    {
+        Drone drone = restService.droneDetails(dataFetchService.getDrones(),id);
+
+        if (drone == null)
+        {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(drone);
+    }
 
 
 
