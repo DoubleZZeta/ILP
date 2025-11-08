@@ -1,5 +1,6 @@
 package uk.ac.ed.acp.cw2.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -40,8 +41,8 @@ public class IlpRestServiceConfig
 
     // Dependency inject Utility class into RestServiceImplementation class
     @Bean
-    public Utility utility()
+    public Utility utility(ObjectMapper objectMapper)
     {
-        return new Utility();
+        return new Utility(objectMapper);
     }
 }

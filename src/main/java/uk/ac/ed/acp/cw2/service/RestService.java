@@ -13,6 +13,8 @@ public interface RestService
     boolean isCloseTo(PositionsRequest Request);
     String nextPosition(PositionAngleRequest Request);
     boolean isInRegion(PositionRegionRequest Request);
-    ArrayList<Integer> droneWithCooling(ArrayList<Drone> drones, boolean coolingState);
+    ArrayList<Integer> droneWithCooling(ArrayList<Drone> drones, boolean state);
+    Drone droneDetails (ArrayList<Drone> drones, Integer droneId);
+    ArrayList<Integer> query (ArrayList<Drone> drones, ArrayList<Query> queries);
 
 }

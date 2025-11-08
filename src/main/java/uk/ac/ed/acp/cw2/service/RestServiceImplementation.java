@@ -1,6 +1,5 @@
 package uk.ac.ed.acp.cw2.service;
 
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
@@ -93,18 +92,66 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public ArrayList<Integer> droneWithCooling(ArrayList<Drone> drones, boolean coolingState)
+    public ArrayList<Integer> droneWithCooling(ArrayList<Drone> drones, boolean state)
     {
         ArrayList<Integer> dronesWithCooling = new ArrayList<>();
-
         for (Drone drone : drones) {
-            if (drone.getCapability().getCooling() == coolingState)
+            if (drone.getCapability().getCooling() == state)
             {
                 dronesWithCooling.add(drone.getId());
             }
         }
-
         return dronesWithCooling;
-
     }
+
+    @Override
+    public Drone droneDetails (ArrayList<Drone> drones, Integer droneId)
+    {
+        Drone droneWithId = null;
+        for(Drone drone : drones)
+        {
+            if (drone.getId().equals(droneId))
+            {
+                droneWithId = drone;
+                break;
+            }
+        }
+        return droneWithId;
+    }
+
+    @Override
+    public  ArrayList<Integer> query (ArrayList<Drone> drones, ArrayList<Query> queries)
+    {
+        String attribute;
+        String value;
+        String operator;
+
+        ArrayList<Integer> droneIds = new ArrayList<>();
+
+        for (Drone drone : drones)
+        {
+            boolean matchesAll = true;
+            for (Query query : queries)
+            {
+                attribute = query.getAttribute();
+                value = query.getValue();
+                operator = query.getOperator();
+
+                Object droneAttributeValue = utility.getDroneAttributeValue(drone, attribute);
+                if(!utility.checkDroneMatchesQuery(droneAttributeValue, value ,operator))
+                {
+                    matchesAll = false;
+                    break;
+                }
+            }
+
+            if (matchesAll)
+            {
+                 droneIds.add(drone.getId());
+            }
+        }
+
+        return droneIds;
+    }
+
 }

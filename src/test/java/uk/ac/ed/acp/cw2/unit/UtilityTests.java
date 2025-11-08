@@ -1,5 +1,6 @@
 package uk.ac.ed.acp.cw2.unit;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,7 +21,7 @@ import java.util.Objects;
  */
 public class UtilityTests
 {
-    Utility utility = new Utility();
+    Utility utility = new Utility(new ObjectMapper());
 
     @Mock
     Position position1;
