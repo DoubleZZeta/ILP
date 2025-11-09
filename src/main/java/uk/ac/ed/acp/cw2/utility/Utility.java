@@ -1,6 +1,5 @@
 package uk.ac.ed.acp.cw2.utility;
 
-import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
@@ -140,10 +139,8 @@ public class Utility
             // TODO is there a chance where capability is null
             Capability capability = drone.getCapability();
 
-            Map<String, Object> droneAttributeDic = objectMapper.convertValue(drone, new TypeReference<Map<String, Object>>() {
-            });
-            Map<String, Object> capabilityAttributeDic = objectMapper.convertValue(capability, new TypeReference<Map<String, Object>>() {
-            });
+            Map<String, Object> droneAttributeDic = objectMapper.convertValue(drone, new TypeReference<>() {});
+            Map<String, Object> capabilityAttributeDic = objectMapper.convertValue(capability, new TypeReference<>() {});
 
             if (droneAttributeDic.containsKey(attribute)) {
                 attributeValue = droneAttributeDic.get(attribute);
@@ -167,35 +164,18 @@ public class Utility
     // Called by the main loop, accepting the attribute value and the passed value, check type and compare
     public boolean checkDroneMatchesQuery (Object droneAttributeValue, String value, String operator)
     {
-        if (droneAttributeValue instanceof Integer)
-        {
-            int valueInteger = Integer.parseInt(value);
-            int droneAttributeValueInteger = (int) droneAttributeValue;
-
-            return switch (operator)
-            {
-                case "=" -> valueInteger == droneAttributeValueInteger;
-                case "!=" -> valueInteger != droneAttributeValueInteger;
-                case ">=" -> valueInteger >= droneAttributeValueInteger;
-                case "<=" -> valueInteger <= droneAttributeValueInteger;
-                case ">" -> valueInteger > droneAttributeValueInteger;
-                case "<" -> valueInteger < droneAttributeValueInteger;
-                default -> false;
-            };
-        }
-        else if (droneAttributeValue instanceof Double)
+        if (droneAttributeValue instanceof Number)
         {
             double valueDouble = Double.parseDouble(value);
-            double droneAttributeValueDouble = (double) droneAttributeValue;
-
+            double droneAttributeValueDouble = ((Number)droneAttributeValue).doubleValue();
             return switch (operator)
             {
-                case "=" -> valueDouble == droneAttributeValueDouble;
-                case "!=" -> valueDouble != droneAttributeValueDouble;
-                case ">=" -> valueDouble >= droneAttributeValueDouble;
-                case "<=" -> valueDouble <= droneAttributeValueDouble;
-                case ">" -> valueDouble > droneAttributeValueDouble;
-                case "<" -> valueDouble < droneAttributeValueDouble;
+                case "=" -> droneAttributeValueDouble == valueDouble;
+                case "!=" -> droneAttributeValueDouble != valueDouble;
+                case ">=" -> droneAttributeValueDouble >= valueDouble;
+                case "<=" -> droneAttributeValueDouble <= valueDouble;
+                case ">" -> droneAttributeValueDouble > valueDouble;
+                case "<" -> droneAttributeValueDouble < valueDouble;
                 default -> false;
             };
         }
