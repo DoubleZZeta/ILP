@@ -115,7 +115,7 @@ public class ServiceController
     @PostMapping("/queryAvailableDrones")
     public ArrayList<Integer> queryAvailableDrones(@RequestBody ArrayList<MedicineDispatchRequest> queries)
     {
-        return restService.queryAvailableDrones(dataFetchService.getDronesServicePoints(),queries);
+        return restService.queryAvailableDrones(dataFetchService.getDrones(), dataFetchService.getDronesServicePoints(), queries);
     }
 
 

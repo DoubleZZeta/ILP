@@ -10,10 +10,16 @@ import lombok.Setter;
 public class Capability
 {
     private Boolean cooling;
+
     private Boolean heating;
+
     private Integer capacity;
+
     private Integer maxMoves;
+
     private Double costPerMove;
+
     private Double costInitial;
+
     private Double costFinal;
 }

@@ -7,7 +7,10 @@ import uk.ac.ed.acp.cw2.data.*;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -205,4 +208,66 @@ public class Utility
         }
         return true;
     }
+
+    public Map<Integer, ArrayList<Availability>>  getAvailabilityMap(ArrayList<DronesServicePoint> droneServicePoints)
+    {
+        Map<Integer, ArrayList<Availability>> availabilityMap = new HashMap<>();
+        for (DronesServicePoint droneServicePoint: droneServicePoints)
+        {
+            for (DroneAvailability droneAvailability: droneServicePoint.getDrones())
+            {
+                int id = Integer.parseInt(droneAvailability.getId());
+                availabilityMap.put(id, droneAvailability.getAvailability());
+            }
+        }
+
+        return availabilityMap;
+    }
+
+    public boolean checkDroneMeetsRequirements(Capability capability, Requirements requirements)
+    {
+        boolean result = true;
+
+        if(requirements.getCapacity() > capability.getCapacity())
+        {
+            result = false;
+        }
+
+        if(requirements.getCooling() == true && capability.getCooling() == false)
+        {
+            result = false;
+        }
+
+        if(requirements.getHeating() == true && capability.getHeating() == false)
+        {
+            result = false;
+        }
+
+        //TODO check this condition
+        if(requirements.getMaxCost() > capability.getMaxMoves() * capability.getCostPerMove())
+        {
+            result = false;
+        }
+
+        return result;
+    }
+
+    public boolean checkDroneIsAvailable(ArrayList<Availability> availabilities, LocalDate date, LocalTime time)
+    {
+        boolean result = false;
+
+        for (Availability availability: availabilities)
+        {
+            boolean dayOfWeekMatches = (date.getDayOfWeek() == availability.getDayOfWeek());
+            boolean timeMatches = (availability.getFrom().isBefore(time) && availability.getUntil().isAfter(time));
+            if(dayOfWeekMatches && timeMatches)
+            {
+                result = true;
+                break;
+            }
+        }
+        return  result;
+    }
+
+
 }

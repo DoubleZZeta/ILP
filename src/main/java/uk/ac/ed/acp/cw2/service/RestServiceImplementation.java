@@ -5,9 +5,12 @@ import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 //Service interface implementation
 /**
@@ -157,9 +160,51 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public ArrayList<Integer> queryAvailableDrones (ArrayList<DronesServicePoint> drones, ArrayList<MedicineDispatchRequest> queries)
+    public ArrayList<Integer> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<DronesServicePoint> dronesServicePoints, ArrayList<MedicineDispatchRequest> queries)
     {
-        return null;
+        int id;
+        LocalDate date;
+        LocalTime time;
+        ArrayList<Availability> availabilities;
+        Capability capability;
+        Requirements requirements;
+
+        ArrayList<Integer> droneIds = new ArrayList<>();
+        Map<Integer, ArrayList<Availability>> availabilityMap = utility.getAvailabilityMap(dronesServicePoints);
+
+
+        for  (Drone drone : drones)
+        {
+            id = drone.getId();
+
+            boolean matchesAll = true;
+            boolean droneIsAvailable;
+            boolean droneMeetsRequirements;
+
+            for (MedicineDispatchRequest query : queries)
+            {
+                date = query.getDate();
+                time = query.getTime();
+                availabilities = availabilityMap.get(id);
+                capability = drone.getCapability();
+                requirements = query.getRequirements();
+
+                droneIsAvailable = utility.checkDroneIsAvailable(availabilities,date,time);
+                droneMeetsRequirements = utility.checkDroneMeetsRequirements(capability, requirements);
+
+                if (!(droneIsAvailable && droneMeetsRequirements))
+                {
+                    matchesAll = false;
+                }
+            }
+
+            if (matchesAll)
+            {
+                droneIds.add(drone.getId());
+            }
+
+        }
+        return droneIds;
     }
 
 }

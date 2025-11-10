@@ -13,6 +13,7 @@ import java.util.ArrayList;
 public class DroneAvailability
 {
     private String id;
+
     private ArrayList<Availability> availability;
 
 }

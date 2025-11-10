@@ -10,6 +10,8 @@ import lombok.Setter;
 public class Drone
 {
     private String name;
+
     private Integer id;
+
     private Capability capability;
 }

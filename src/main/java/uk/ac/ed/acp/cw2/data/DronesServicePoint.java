@@ -12,5 +12,6 @@ import java.util.ArrayList;
 public class DronesServicePoint
 {
     private String id;
+
     private ArrayList<DroneAvailability> drones;
 }
