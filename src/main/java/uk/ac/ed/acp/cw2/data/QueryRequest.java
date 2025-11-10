@@ -7,7 +7,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Setter
 @Getter
-public class Query
+public class QueryRequest
 {
     private String attribute;
     private String operator;

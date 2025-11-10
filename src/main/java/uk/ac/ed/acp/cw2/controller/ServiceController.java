@@ -1,22 +1,17 @@
 package uk.ac.ed.acp.cw2.controller;
 
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.service.DataFetchService;
 import uk.ac.ed.acp.cw2.service.RestService;
-import uk.ac.ed.acp.cw2.utility.Utility;
 
 import java.net.URL;
-import java.time.Instant;
 import java.util.ArrayList;
 
 /**
@@ -104,18 +99,25 @@ public class ServiceController
     @GetMapping("/queryAsPath/{attribute-name}/{attribute-value}")
     public ArrayList<Integer> queryAsPath(@PathVariable("attribute-name") String attributeName, @PathVariable("attribute-value")  String attributeValue)
     {
-        ArrayList<Query> queries = new ArrayList<>();
-        Query query = new Query(attributeName,"=", attributeValue);
-        queries.add(query);
+        ArrayList<QueryRequest> queries = new ArrayList<>();
+        QueryRequest queryRequest = new QueryRequest(attributeName,"=", attributeValue);
+        queries.add(queryRequest);
 
         return restService.query(dataFetchService.getDrones(), queries);
     }
 
     @PostMapping("/query")
-    public ArrayList<Integer> query(@RequestBody ArrayList<Query> queries)
+    public ArrayList<Integer> query(@RequestBody ArrayList<QueryRequest> queries)
     {
         return restService.query(dataFetchService.getDrones(), queries);
     }
+
+    @PostMapping("/queryAvailableDrones")
+    public ArrayList<Integer> queryAvailableDrones(@RequestBody ArrayList<MedicineDispatchRequest> queries)
+    {
+        return restService.queryAvailableDrones(dataFetchService.getDronesServicePoints(),queries);
+    }
+
 
 
 

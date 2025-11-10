@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import uk.ac.ed.acp.cw2.data.Drone;
+import uk.ac.ed.acp.cw2.data.DronesServicePoint;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,5 +34,19 @@ public class DataFetchServiceImplementation implements DataFetchService
         }
 
         return new ArrayList<>(Arrays.asList(droneList));
+    }
+
+    @Override
+    public ArrayList<DronesServicePoint> getDronesServicePoints()
+    {
+        String dronesServicePointUrl = this.url + "/drones-for-service-points";
+        DronesServicePoint[] dronesServicePointsList = restTemplate.getForObject(dronesServicePointUrl, DronesServicePoint[].class);
+
+        if (dronesServicePointsList == null)
+        {
+            return new ArrayList<>();
+        }
+
+        return new ArrayList<>(Arrays.asList(dronesServicePointsList));
     }
 }

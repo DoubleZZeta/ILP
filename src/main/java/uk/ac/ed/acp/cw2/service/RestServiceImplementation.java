@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 
 //Service interface implementation
@@ -120,7 +122,7 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public  ArrayList<Integer> query (ArrayList<Drone> drones, ArrayList<Query> queries)
+    public  ArrayList<Integer> query (ArrayList<Drone> drones, ArrayList<QueryRequest> queries)
     {
         String attribute;
         String value;
@@ -131,11 +133,11 @@ public class RestServiceImplementation implements RestService
         for (Drone drone : drones)
         {
             boolean matchesAll = true;
-            for (Query query : queries)
+            for (QueryRequest queryRequest : queries)
             {
-                attribute = query.getAttribute();
-                value = query.getValue();
-                operator = query.getOperator();
+                attribute = queryRequest.getAttribute();
+                value = queryRequest.getValue();
+                operator = queryRequest.getOperator();
 
                 Object droneAttributeValue = utility.getDroneAttributeValue(drone, attribute);
                 if(!utility.checkDroneMatchesQuery(droneAttributeValue, value ,operator))
@@ -152,6 +154,12 @@ public class RestServiceImplementation implements RestService
         }
 
         return droneIds;
+    }
+
+    @Override
+    public ArrayList<Integer> queryAvailableDrones (ArrayList<DronesServicePoint> drones, ArrayList<MedicineDispatchRequest> queries)
+    {
+        return null;
     }
 
 }
