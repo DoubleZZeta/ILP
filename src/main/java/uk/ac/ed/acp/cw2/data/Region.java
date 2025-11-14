@@ -21,6 +21,10 @@ public class Region
     @NotNull
     private String name;
 
+    // TODO this might be risky, adding id to make this class usable for cw2, OK I am in troubles...
+    // TODO re-evaluate the need of use Region class to get the restricted areas
+//    private Integer id;
+
     //Check that the first vertex is the same as the last vertex
     @IsRegionClosed
     //Check that the vertices contains at least 4 vertices

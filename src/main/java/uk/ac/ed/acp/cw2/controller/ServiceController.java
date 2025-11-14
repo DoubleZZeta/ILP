@@ -106,16 +106,24 @@ public class ServiceController
         return restService.query(dataFetchService.getDrones(), queries);
     }
 
+    //TODO all drone ids need to be string
     @PostMapping("/query")
     public ArrayList<Integer> query(@RequestBody ArrayList<QueryRequest> queries)
     {
         return restService.query(dataFetchService.getDrones(), queries);
     }
 
+    //TODO all drone ids need to be string
     @PostMapping("/queryAvailableDrones")
     public ArrayList<Integer> queryAvailableDrones(@RequestBody ArrayList<MedicineDispatchRequest> queries)
     {
-        return restService.queryAvailableDrones(dataFetchService.getDrones(), dataFetchService.getDronesServicePoints(), queries);
+        return restService.queryAvailableDrones(dataFetchService.getDrones(), dataFetchService.getServicePointsDrones(), queries);
+    }
+
+    @PostMapping("/calcDeliveryPath")
+    public ReturnedPath calcDeliveryPath(@RequestBody ArrayList<MedicineDispatchRequest> queries)
+    {
+        return null;
     }
 
 

@@ -209,10 +209,10 @@ public class Utility
         return true;
     }
 
-    public Map<Integer, ArrayList<Availability>>  getAvailabilityMap(ArrayList<DronesServicePoint> droneServicePoints)
+    public Map<Integer, ArrayList<Availability>>  getAvailabilityMap(ArrayList<ServicePointDrones> droneServicePoints)
     {
         Map<Integer, ArrayList<Availability>> availabilityMap = new HashMap<>();
-        for (DronesServicePoint droneServicePoint: droneServicePoints)
+        for (ServicePointDrones droneServicePoint: droneServicePoints)
         {
             for (DroneAvailability droneAvailability: droneServicePoint.getDrones())
             {
@@ -244,16 +244,17 @@ public class Utility
         }
 
         //TODO check this condition
-        if(requirements.getMaxCost() > capability.getMaxMoves() * capability.getCostPerMove())
-        {
-            result = false;
-        }
+//        if(requirements.getMaxCost() <= capability.getMaxMoves() * capability.getCostPerMove())
+//        {
+//            result = false;
+//        }
 
         return result;
     }
 
     public boolean checkDroneIsAvailable(ArrayList<Availability> availabilities, LocalDate date, LocalTime time)
     {
+        //TODO date and time could be empty (?)
         boolean result = false;
 
         for (Availability availability: availabilities)

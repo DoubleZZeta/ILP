@@ -5,11 +5,9 @@ import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 //Service interface implementation
@@ -160,7 +158,7 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public ArrayList<Integer> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<DronesServicePoint> dronesServicePoints, ArrayList<MedicineDispatchRequest> queries)
+    public ArrayList<Integer> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones, ArrayList<MedicineDispatchRequest> queries)
     {
         int id;
         LocalDate date;
@@ -170,7 +168,7 @@ public class RestServiceImplementation implements RestService
         Requirements requirements;
 
         ArrayList<Integer> droneIds = new ArrayList<>();
-        Map<Integer, ArrayList<Availability>> availabilityMap = utility.getAvailabilityMap(dronesServicePoints);
+        Map<Integer, ArrayList<Availability>> availabilityMap = utility.getAvailabilityMap(servicePointDrones);
 
 
         for  (Drone drone : drones)
@@ -195,6 +193,7 @@ public class RestServiceImplementation implements RestService
                 if (!(droneIsAvailable && droneMeetsRequirements))
                 {
                     matchesAll = false;
+                    break;
                 }
             }
 
@@ -207,4 +206,10 @@ public class RestServiceImplementation implements RestService
         return droneIds;
     }
 
+    @Override
+    public ReturnedPath calcDeliveryPath(MedicineDispatchRequest queries)
+    {
+        return null;
+
+    }
 }

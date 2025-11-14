@@ -16,6 +16,7 @@ public interface RestService
     ArrayList<Integer> droneWithCooling(ArrayList<Drone> drones, boolean state);
     Drone droneDetails (ArrayList<Drone> drones, Integer droneId);
     ArrayList<Integer> query (ArrayList<Drone> drones, ArrayList<QueryRequest> queries);
-    ArrayList<Integer> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<DronesServicePoint> dronesServicePoints, ArrayList<MedicineDispatchRequest> queries);
+    ArrayList<Integer> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones, ArrayList<MedicineDispatchRequest> queries);
+    ReturnedPath calcDeliveryPath(MedicineDispatchRequest queries);
 
 }

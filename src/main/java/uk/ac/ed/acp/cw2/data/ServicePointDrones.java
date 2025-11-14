@@ -9,7 +9,7 @@ import java.util.ArrayList;
 @AllArgsConstructor
 @Setter
 @Getter
-public class DronesServicePoint
+public class ServicePointDrones
 {
     private String id;
 

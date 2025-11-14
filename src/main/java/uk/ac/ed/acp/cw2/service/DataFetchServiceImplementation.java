@@ -3,8 +3,7 @@ package uk.ac.ed.acp.cw2.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import uk.ac.ed.acp.cw2.data.Drone;
-import uk.ac.ed.acp.cw2.data.DronesServicePoint;
+import uk.ac.ed.acp.cw2.data.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,30 +22,59 @@ public class DataFetchServiceImplementation implements DataFetchService
     }
 
     @Override
-    public ArrayList<Drone> getDrones()
+    public ArrayList<ServicePoint> getServicePoints()
     {
-        String droneUrl = this.url + "/drones";
-        Drone[] droneList = restTemplate.getForObject(droneUrl, Drone[].class);
+        String servicePointUrl = this.url + "/service-points";
+        ServicePoint[] servicePoints = restTemplate.getForObject(servicePointUrl, ServicePoint[].class);
 
-        if (droneList == null)
+        if (servicePoints == null)
         {
             return new ArrayList<>();
         }
 
-        return new ArrayList<>(Arrays.asList(droneList));
+        return new ArrayList<>(Arrays.asList(servicePoints));
     }
 
     @Override
-    public ArrayList<DronesServicePoint> getDronesServicePoints()
+    public  ArrayList<RestrictedArea> getRestrictedAreas()
     {
-        String dronesServicePointUrl = this.url + "/drones-for-service-points";
-        DronesServicePoint[] dronesServicePointsList = restTemplate.getForObject(dronesServicePointUrl, DronesServicePoint[].class);
+        String restrictedAreaUrl = this.url + "/restricted-areas";
+        RestrictedArea[] restrictedAreas = restTemplate.getForObject(restrictedAreaUrl, RestrictedArea[].class);
 
-        if (dronesServicePointsList == null)
+        if (restrictedAreas == null)
         {
             return new ArrayList<>();
         }
 
-        return new ArrayList<>(Arrays.asList(dronesServicePointsList));
+        return new ArrayList<>(Arrays.asList(restrictedAreas));
     }
+
+    @Override
+    public ArrayList<Drone> getDrones()
+    {
+        String droneUrl = this.url + "/drones";
+        Drone[] drones = restTemplate.getForObject(droneUrl, Drone[].class);
+
+        if (drones == null)
+        {
+            return new ArrayList<>();
+        }
+
+        return new ArrayList<>(Arrays.asList(drones));
+    }
+
+    @Override
+    public ArrayList<ServicePointDrones> getServicePointsDrones()
+    {
+        String servicePointUrlDrones = this.url + "/drones-for-service-points";
+        ServicePointDrones[] servicePointsDrones = restTemplate.getForObject(servicePointUrlDrones, ServicePointDrones[].class);
+
+        if (servicePointsDrones == null)
+        {
+            return new ArrayList<>();
+        }
+
+        return new ArrayList<>(Arrays.asList(servicePointsDrones));
+    }
+
 }
