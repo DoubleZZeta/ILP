@@ -2,6 +2,9 @@ package uk.ac.ed.acp.cw2.utility;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 import uk.ac.ed.acp.cw2.data.*;
 
@@ -9,10 +12,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Utility class contains helper functions.
@@ -22,11 +22,39 @@ import java.util.Objects;
 @Component
 public class Utility
 {
+    private static final Double unitLength = 0.00015;
     private final ObjectMapper objectMapper;
 
     public Utility(ObjectMapper objectMapper)
     {
         this.objectMapper = objectMapper;
+    }
+
+    @Setter
+    @Getter
+    public static class Node implements Comparable<Node>
+    {
+        private Node parent;
+        private Position position;
+        private Double gScore;
+        private Double fScore;
+        private Boolean explored;
+
+        public Node(Node parent, Position position, Double gScore, Double heuristic, boolean explored)
+        {
+            this.parent = parent;
+            this.position = position;
+            this.gScore = gScore;
+            this.fScore = heuristic + this.gScore;
+            this.explored = explored;
+        }
+
+        @Override
+        public int compareTo(Node other)
+        {
+            return Double.compare(fScore, other.fScore);
+        }
+
     }
 
     //Calculate the Euclidean distance between two given positions
@@ -118,7 +146,7 @@ public class Utility
             if(Objects.equals(x1, x2))
             {
                 return true;
-             }
+            }
             //Otherwise we calculate the x coordinate of the intersection
             else
             {
@@ -243,12 +271,6 @@ public class Utility
             result = false;
         }
 
-        //TODO check this condition
-//        if(requirements.getMaxCost() <= capability.getMaxMoves() * capability.getCostPerMove())
-//        {
-//            result = false;
-//        }
-
         return result;
     }
 
@@ -268,6 +290,57 @@ public class Utility
             }
         }
         return  result;
+    }
+
+    public ArrayList<Position> calculatePath(Node node, Position end)
+    {
+        ArrayList<Position> path = new ArrayList<>();
+        path.add(end);
+        while(node.parent != null)
+        {
+            path.add(node.position);
+            node = node.parent;
+        }
+        Collections.reverse(path); // Reverses the path from [end...start] to [start...end]
+        return path;
+    }
+
+    public ArrayList<Position> aStarSearch(Position start, Position end, ArrayList<RestrictedArea> restrictedAreas)
+    {
+        // Set up
+        PriorityQueue<Node> minHeap = new PriorityQueue<>();
+        minHeap.add(new Node( null, start,0.0,calculateDistance(start,end),false));
+
+
+        //main loop
+        while (!minHeap.isEmpty())
+        {
+            Node u = minHeap.poll();
+            if (calculateDistance(u.getPosition(), end) < unitLength)
+            {
+                return calculatePath(u,end);
+            }
+            if (!u.getExplored())
+            {
+                u.setExplored(true);
+                for (double angle = 0.0; angle < 360; angle += 22.5)
+                {
+                    Double nextLng = unitLength * Math.cos(angle) + u.getPosition().getLng();
+                    Double nextLat = unitLength * Math.sin(angle) + u.getPosition().getLat();
+                    Position nextPosition = new Position(nextLng,nextLat);
+                    if (!nextLng.equals(u.getPosition().getLng()) && !nextLat.equals(u.getPosition().getLat()))
+                    {
+                        // TODO problematic, is it f score in minHeap? is it distance in node?
+                        Node v = new Node(u, u.getPosition(), u.getGScore() + unitLength, calculateDistance(nextPosition, end),false);
+                        minHeap.add(v);
+                    }
+                }
+            }
+
+
+        }
+
+        return null;
     }
 
 

@@ -207,9 +207,9 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public ReturnedPath calcDeliveryPath(MedicineDispatchRequest queries)
+    public ReturnedPath calcDeliveryPath(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones)
     {
-        return null;
 
+        return null;
     }
 }

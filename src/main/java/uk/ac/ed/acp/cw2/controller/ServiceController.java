@@ -123,7 +123,11 @@ public class ServiceController
     @PostMapping("/calcDeliveryPath")
     public ReturnedPath calcDeliveryPath(@RequestBody ArrayList<MedicineDispatchRequest> queries)
     {
-        return null;
+        ArrayList<ServicePoint>  servicePoints = dataFetchService.getServicePoints();
+        ArrayList<RestrictedArea>  restrictedAreas = dataFetchService.getRestrictedAreas();
+        ArrayList<Drone> drones = dataFetchService.getDrones();
+        ArrayList<ServicePointDrones> servicePointDrones = dataFetchService.getServicePointsDrones();
+        return restService.calcDeliveryPath(queries,servicePoints,restrictedAreas,drones,servicePointDrones);
     }
 
 
