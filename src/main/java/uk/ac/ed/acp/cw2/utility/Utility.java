@@ -167,7 +167,7 @@ public class Utility
         try
         {
             Object attributeValue = null;
-            // TODO is there a chance where capability is null
+            // TODO is there a chance where capability is null no i guess
             Capability capability = drone.getCapability();
 
             Map<String, Object> droneAttributeDic = objectMapper.convertValue(drone, new TypeReference<>() {});
@@ -237,14 +237,14 @@ public class Utility
         return true;
     }
 
-    public Map<Integer, ArrayList<Availability>>  getAvailabilityMap(ArrayList<ServicePointDrones> droneServicePoints)
+    public Map<String, ArrayList<Availability>>  getAvailabilityMap(ArrayList<ServicePointDrones> droneServicePoints)
     {
-        Map<Integer, ArrayList<Availability>> availabilityMap = new HashMap<>();
+        Map<String, ArrayList<Availability>> availabilityMap = new HashMap<>();
         for (ServicePointDrones droneServicePoint: droneServicePoints)
         {
             for (DroneAvailability droneAvailability: droneServicePoint.getDrones())
             {
-                int id = Integer.parseInt(droneAvailability.getId());
+                String id = droneAvailability.getId();
                 availabilityMap.put(id, droneAvailability.getAvailability());
             }
         }
@@ -252,7 +252,7 @@ public class Utility
         return availabilityMap;
     }
 
-    public boolean checkDroneMeetsRequirements(Capability capability, Requirements requirements)
+    public boolean checkDroneMeetsRequirements(Capability capability, Requirements requirements, Position delivery)
     {
         boolean result = true;
 
@@ -261,14 +261,19 @@ public class Utility
             result = false;
         }
 
-        if(requirements.getCooling() == true && capability.getCooling() == false)
+        if(requirements.getCooling() != null && requirements.getCooling() && !capability.getCooling())
         {
             result = false;
         }
 
-        if(requirements.getHeating() == true && capability.getHeating() == false)
+        if(requirements.getHeating() != null && requirements.getHeating() && !capability.getHeating())
         {
             result = false;
+        }
+
+        if(requirements.getMaxCost() != null)
+        {
+
         }
 
         return result;
@@ -276,13 +281,31 @@ public class Utility
 
     public boolean checkDroneIsAvailable(ArrayList<Availability> availabilities, LocalDate date, LocalTime time)
     {
-        //TODO date and time could be empty (?)
         boolean result = false;
+        boolean dayOfWeekMatches;
+        boolean timeMatches;
+
 
         for (Availability availability: availabilities)
         {
-            boolean dayOfWeekMatches = (date.getDayOfWeek() == availability.getDayOfWeek());
-            boolean timeMatches = (availability.getFrom().isBefore(time) && availability.getUntil().isAfter(time));
+            if (date != null)
+            {
+                dayOfWeekMatches = (date.getDayOfWeek() == availability.getDayOfWeek());
+            }
+            else
+            {
+                dayOfWeekMatches = true;
+            }
+
+            if (time != null)
+            {
+                timeMatches = (availability.getFrom().isBefore(time) && availability.getUntil().isAfter(time));
+            }
+            else
+            {
+                timeMatches = true;
+            }
+
             if(dayOfWeekMatches && timeMatches)
             {
                 result = true;
@@ -290,6 +313,63 @@ public class Utility
             }
         }
         return  result;
+    }
+
+    public Set<LocalDate> getAllDates(ArrayList<MedicineDispatchRequest> quires)
+    {
+        Set<LocalDate> dates = new HashSet<>();
+        for (MedicineDispatchRequest query: quires)
+        {
+            dates.add(query.getDate());
+        }
+        return dates;
+    }
+
+    public ArrayList<MedicineDispatchRequest> getMedicineDispatchByDate(ArrayList<MedicineDispatchRequest> queries, LocalDate date)
+    {
+        ArrayList<MedicineDispatchRequest> medicineDispatchRequestsByDate = new ArrayList<>();
+        for (MedicineDispatchRequest query: queries)
+        {
+            if(query.getDate().equals(date))
+            {
+                medicineDispatchRequestsByDate.add(query);
+            }
+        }
+        return medicineDispatchRequestsByDate;
+    }
+
+    public Position getServicePointPositionByDroneIdAndTime(String droneId,ArrayList<ServicePointDrones> servicePointDrones, ArrayList<ServicePoint> servicePoints, LocalDate date, LocalTime time)
+    {
+        int servicePointId = -1;
+
+        for (ServicePointDrones servicePointDrone: servicePointDrones)
+        {
+            servicePointId = servicePointDrone.getServicePointId();
+            boolean found = false;
+            for (DroneAvailability droneAvailability: servicePointDrone.getDrones())
+            {
+                String id = droneAvailability.getId();
+                if (id.equals(droneId))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (found)
+            {
+                break;
+            }
+        }
+
+        for (ServicePoint servicePoint: servicePoints)
+        {
+            if  (servicePoint.getId().equals(servicePointId))
+            {
+                return servicePoint.getPosition();
+            }
+        }
+
+        return null;
     }
 
     public ArrayList<Position> calculatePath(Node node, Position end)
@@ -330,7 +410,8 @@ public class Utility
                     Position nextPosition = new Position(nextLng,nextLat);
                     if (!nextLng.equals(u.getPosition().getLng()) && !nextLat.equals(u.getPosition().getLat()))
                     {
-                        // TODO problematic, is it f score in minHeap? is it distance in node?
+                        //TODO condition might be wrong
+                        //TODO prevent going back and forth
                         Node v = new Node(u, u.getPosition(), u.getGScore() + unitLength, calculateDistance(nextPosition, end),false);
                         minHeap.add(v);
                     }
@@ -340,8 +421,10 @@ public class Utility
 
         }
 
-        return null;
+        return new ArrayList<>();
     }
+
+
 
 
 }

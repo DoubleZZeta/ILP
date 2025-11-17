@@ -11,7 +11,7 @@ import java.util.ArrayList;
 @Getter
 public class DronePath
 {
-    private String dronId; //TODO may be string?
+    private String dronId;
     private ArrayList<Deliveries> deliveries;
 
 }

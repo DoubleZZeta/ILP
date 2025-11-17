@@ -11,7 +11,7 @@ import java.util.ArrayList;
 @Getter
 public class ServicePointDrones
 {
-    private String id;
+    private Integer servicePointId;
 
     private ArrayList<DroneAvailability> drones;
 }

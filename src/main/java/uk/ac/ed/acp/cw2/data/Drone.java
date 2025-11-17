@@ -11,7 +11,7 @@ public class Drone
 {
     private String name;
 
-    private Integer id;
+    private String id;
 
     private Capability capability;
 }

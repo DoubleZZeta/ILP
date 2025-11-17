@@ -78,13 +78,13 @@ public class ServiceController
     }
 
     @GetMapping("/dronesWithCooling/{state}")
-    public ArrayList<Integer> dronesWithCooling(@PathVariable("state") boolean state)
+    public ArrayList<String> dronesWithCooling(@PathVariable("state") boolean state)
     {
         return restService.droneWithCooling(dataFetchService.getDrones(), state);
     }
 
     @GetMapping("/droneDetails/{id}")
-    public ResponseEntity<Drone> droneDetails(@PathVariable("id") Integer id)
+    public ResponseEntity<Drone> droneDetails(@PathVariable("id") String id)
     {
         Drone drone = restService.droneDetails(dataFetchService.getDrones(),id);
 
@@ -97,7 +97,7 @@ public class ServiceController
     }
 
     @GetMapping("/queryAsPath/{attribute-name}/{attribute-value}")
-    public ArrayList<Integer> queryAsPath(@PathVariable("attribute-name") String attributeName, @PathVariable("attribute-value")  String attributeValue)
+    public ArrayList<String> queryAsPath(@PathVariable("attribute-name") String attributeName, @PathVariable("attribute-value")  String attributeValue)
     {
         ArrayList<QueryRequest> queries = new ArrayList<>();
         QueryRequest queryRequest = new QueryRequest(attributeName,"=", attributeValue);
@@ -108,14 +108,14 @@ public class ServiceController
 
     //TODO all drone ids need to be string
     @PostMapping("/query")
-    public ArrayList<Integer> query(@RequestBody ArrayList<QueryRequest> queries)
+    public ArrayList<String> query(@RequestBody ArrayList<QueryRequest> queries)
     {
         return restService.query(dataFetchService.getDrones(), queries);
     }
 
     //TODO all drone ids need to be string
     @PostMapping("/queryAvailableDrones")
-    public ArrayList<Integer> queryAvailableDrones(@RequestBody ArrayList<MedicineDispatchRequest> queries)
+    public ArrayList<String> queryAvailableDrones(@RequestBody ArrayList<MedicineDispatchRequest> queries)
     {
         return restService.queryAvailableDrones(dataFetchService.getDrones(), dataFetchService.getServicePointsDrones(), queries);
     }
