@@ -11,5 +11,5 @@ public class ServicePoint
 {
     private String name;
     private Integer id;
-    private Position position;
+    private Position location;
 }

@@ -1,12 +1,11 @@
 package uk.ac.ed.acp.cw2.service;
 
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.endpoint.invoker.cache.CachingOperationInvokerAdvisor;
 import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
@@ -22,12 +21,14 @@ public class RestServiceImplementation implements RestService
 
     private final Utility utility;
     private static final Double unitLength = 0.00015;
+    private final CachingOperationInvokerAdvisor cachingOperationInvokerAdvisor;
 
     //Dependency inject the utility clas
     @Autowired
-    public RestServiceImplementation(final Utility utility)
+    public RestServiceImplementation(final Utility utility, CachingOperationInvokerAdvisor cachingOperationInvokerAdvisor)
     {
         this.utility = utility;
+        this.cachingOperationInvokerAdvisor = cachingOperationInvokerAdvisor;
     }
 
     @Override
@@ -68,31 +69,8 @@ public class RestServiceImplementation implements RestService
     @Override
     public boolean isInRegion(PositionRegionRequest Request)
     {
-        //Ray casting algorithm
-        Position position = Request.getPosition();
-        Region region = Request.getRegion();
-
-        //Number of intersection between the ray and the region edges
-        int count = 0;
-        ArrayList<PositionsRequest> edges = utility.getRegionEdges(region);
-
-        //Iterate through all edges
-        for(PositionsRequest edge : edges)
-        {
-            //If the position is on the edge of the region, return true directly
-            if (utility.isPositionOnEdge(position,edge))
-            {
-                return true;
-            }
-            //Else check if the ray intersect with the edge
-            else if(utility.isEdgeIntersectWithRay(position, edge))
-            {
-                count++;
-            }
-        }
-
-        //If the number of intersection is odd, then the position is inside the region
-        return count % 2 != 0;
+        // Moved the logic to utility for cw2
+        return utility.isInRegion(Request);
     }
 
     @Override
@@ -217,111 +195,151 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public ReturnedPath calcDeliveryPath(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones)
+    public ReturnedPath calcDeliveryPath(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointsDrones)
     {
+        //TODO add a while loop for same drone delivery but from different service points
+        //TODO optimise the function for getting drone bases
+        Set<LocalDate> dates = utility.getAllDates(queries);
+        List<LocalDate> sortedDates = dates.stream().sorted().toList();
 
         int totalMoves = 0;
         double totalCost = 0;
-        ArrayList<DronePath> dronePaths = new ArrayList<>();
-        Set<LocalDate> dates = utility.getAllDates(queries);
-        //TODO sort dates by order
+        ReturnedPath returnedPath = new ReturnedPath(0.0,0, new ArrayList<>());
 
         // Do this date by date, since no cross date delivery allowed
-        for (LocalDate date: dates)
+        for (LocalDate date: sortedDates)
         {
-            ArrayList<MedicineDispatchRequest> queryByDate = utility.getMedicineDispatchByDate(queries, date);
             // Sort the deliveries based on the required arrival time of the orders
+            ArrayList<MedicineDispatchRequest> queryByDate = utility.getMedicineDispatchByDate(queries, date);
             queryByDate.sort(Comparator.comparing(MedicineDispatchRequest::getTime));
-
-            // Loop continues if not all deliveries in a date has been made
-            // Each loop indicates a new fly
-            int currentDroneIndex = 0;
-            while (!queryByDate.isEmpty())
+            for (Drone drone : drones)
             {
-                // Needed local variables
-                double flightMaxCost = queryByDate.getFirst().getRequirements().getMaxCost();
-                Integer droneMaxMove;
-                Drone currentDrone;
+                Capability droneCapability = drone.getCapability();
+                double currentDroneCapacity = droneCapability.getCapacity();
+                int currentDroneMoves = 0;
+                int currentNumberOfDeliveries = 0;
+                double currentCostPerDelivery;
+                double currentLandingAndTakeOffCost = droneCapability.getCostInitial() + droneCapability.getCostFinal();
+                boolean currentDroneCooling = droneCapability.getCooling();
+                boolean currentDroneHeating = droneCapability.getHeating();
+                Position currentDroneBase = null;
+                ArrayList<Position> currentDronePath = new ArrayList<>();
+                ArrayList<MedicineDispatchRequest> delivered = new ArrayList<>();
                 Position start;
                 Position end;
-                ArrayList<Position> path = new ArrayList<>();
 
-                // Get list of available drones based on the first query
-                ArrayList<String> availableDronesIds = queryAvailableDrones(drones, servicePointDrones, new ArrayList<>(Collections.singletonList(queryByDate.getFirst())));
-                currentDrone = droneDetails(drones,availableDronesIds.get(currentDroneIndex));
-                droneMaxMove = currentDrone.getCapability().getMaxMoves();
-
-                // Choose a drone and then get its service point location (potential optimisation is choosing a drone with base closet to the destination)
-                Position droneBase = utility.getServicePointPositionByDroneIdAndTime(currentDrone.getId(), servicePointDrones, servicePoints);
-
-                // Before take-off, reduce the flightMaxCost by the cost to take-off
-                flightMaxCost -= currentDrone.getCapability().getCostInitial();
-
-                // Apply A* from the start to the first point, then try to integrate other deliveries
-                ArrayList<Position> intermediatePath = new ArrayList<>();
-                ArrayList<Position> returnPath = new ArrayList<>();
-                ArrayList<MedicineDispatchRequest> delivered = new ArrayList<>();
-                for (MedicineDispatchRequest query : queryByDate)
+                for(MedicineDispatchRequest query : queryByDate)
                 {
-                    // Get start and end first
-                    end = query.getDelivery();
-                    if (intermediatePath.isEmpty())
+                    Requirements queryRequirements = query.getRequirements();
+                    LocalTime time = query.getTime();
+                    Position droneBase = utility.getServicePointPosition(drone.getId(), servicePointsDrones, servicePoints, date, time);
+
+                    // Current drone is not available
+                    if (droneBase == null)
                     {
-                        start = droneBase;
+                        // Move to next drone
+                       continue;
                     }
-                    else
+
+                    // If we haven't fixed a base for this flight yet, lock it in
+                    if (currentDroneBase == null)
                     {
-                        start = intermediatePath.getLast();
+                        currentDroneBase = droneBase;
                     }
-
-                    // Try to add one more delivery point
-                    intermediatePath = utility.aStarSearch(start,end,restrictedAreas);
-                    int moves = intermediatePath.size();
-                    double cost = moves * currentDrone.getCapability().getCostPerMove();
-
-                    // Checking if the costs/moves is enough to return to base
-                    returnPath = utility.aStarSearch(end,droneBase,restrictedAreas);
-                    int movesReturn = returnPath.size();
-                    double costReturn = movesReturn * currentDrone.getCapability().getCostPerMove();
-
-                    // Update move and cost
-                    droneMaxMove -= moves;
-                    flightMaxCost -= cost;
-
-                    // Cannot add delivery due to out of move/cost. But should I consider no path found ? yes
-                    if(!((flightMaxCost - costReturn) <= 0 || (droneMaxMove - movesReturn) <= 0 || intermediatePath.isEmpty() || returnPath.isEmpty()))
+                    else if (!currentDroneBase.equals(droneBase))
                     {
-                        // Merge path, and remove the added query
-                        totalCost += cost;
-                        totalMoves += moves;
-                        path.addAll(intermediatePath);
-                        delivered.add(query);
+                        // This query would require starting from a different base,
+                        // so it can't belong to this particular string
+                        continue;
                     }
-                    // If any of the above condition not satisfied,  don't do anything
+
+
+                    boolean canDeliver = true;
+                    if(currentDroneCapacity < queryRequirements.getCapacity())
+                    {
+                        canDeliver = false;
+                    }
+
+                    Boolean reqCooling = queryRequirements.getCooling();
+                    if (reqCooling != null && reqCooling && !currentDroneCooling)
+                    {
+                        canDeliver = false;
+                    }
+
+                    Boolean reqHeating = queryRequirements.getHeating();
+                    if (reqHeating != null && reqHeating && !currentDroneHeating)
+                    {
+                        canDeliver = false;
+                    }
+
+                    if (canDeliver)
+                    {
+                        if(currentDronePath.isEmpty())
+                        {
+                            start = droneBase;
+                        }
+                        else
+                        {
+                            start = currentDronePath.getLast(); // Java DO have getLast()
+                        }
+                        end = query.getDelivery();
+
+                        ArrayList<Position> toDeliver = utility.aStarSearch(start,end,restrictedAreas);
+                        int movesTo = toDeliver.size();
+                        ArrayList<Position> toBase = utility.aStarSearch(end,droneBase,restrictedAreas);
+                        int movesBack = toBase.size();
+
+                        if (toDeliver.isEmpty() || toBase.isEmpty())
+                        {
+                            // no valid path, treat as cannot deliver this query
+                            continue;
+                        }
+
+                        int estimatedCurrentDroneMoves = currentDroneMoves + (movesTo + movesBack);
+                        int estimatedCurrentNumberOfDeliveries = currentNumberOfDeliveries + 1;
+                        double estimatedCurrentFlightCost = currentLandingAndTakeOffCost + estimatedCurrentDroneMoves * droneCapability.getCostPerMove();
+                        currentCostPerDelivery = estimatedCurrentFlightCost / estimatedCurrentNumberOfDeliveries;
+
+                        if((estimatedCurrentDroneMoves <= droneCapability.getMaxMoves()) && (currentCostPerDelivery <= queryRequirements.getMaxCost()))
+                        {
+
+                            currentDroneMoves += movesTo;
+                            currentNumberOfDeliveries += 1;
+                            currentDroneCapacity -=  queryRequirements.getCapacity();
+                            currentDronePath.addAll(toDeliver);
+                            delivered.add(query);
+
+                            totalMoves += movesTo;
+
+                            // For hover
+                            toDeliver.add(toDeliver.getLast());
+                            utility.addDeliveriesToRetunedPath(drone.getId(),query.getId(),toDeliver,returnedPath);
+                        }
+                    }
+
                 }
-                //remove delivered
+                if (!currentDronePath.isEmpty()) 
+                {
+                    Position last = currentDronePath.getLast();
+                    ArrayList<Position> back = utility.aStarSearch(last, currentDroneBase, restrictedAreas);
+                    utility.addDeliveriesToRetunedPath(drone.getId(),null,back,returnedPath);
+                    currentDroneMoves += back.size();
+                    totalMoves += back.size();
+                    totalCost += currentLandingAndTakeOffCost + currentDroneMoves * droneCapability.getCostPerMove();
+                }
                 queryByDate.removeAll(delivered);
-
-                // Return to base
-                if (!delivered.isEmpty()) // Check if we actually delivered anything
-                {
-                    Position lastDeliveryPoint = delivered.getLast().getDelivery();
-                    returnPath = utility.aStarSearch(lastDeliveryPoint, droneBase, restrictedAreas);
-                    path.addAll(returnPath);
-                    totalMoves += returnPath.size();
-                    totalCost += returnPath.size() * currentDrone.getCapability().getCostPerMove();
-                }
-
-
-                // After the path is found, construct the response and put it aside
-                    // toDelivery function and more there
-                    // it's just datatype conversion, do it later
-                // Pick another drone (iterate)
-                currentDroneIndex = (currentDroneIndex+1) % drones.size(); // wrap around
-                System.out.println(path);
             }
-        }
 
+        }
+        returnedPath.setTotalCost(totalCost);
+        returnedPath.setTotalMoves(totalMoves);
+        return returnedPath;
+    }
+
+    @Override
+    public GeoJson calcDeliveryPathAsGeoJson(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones)
+    {
         return null;
     }
+
 }

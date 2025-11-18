@@ -2,7 +2,6 @@ package uk.ac.ed.acp.cw2.utility;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,8 @@ import java.util.*;
 @Component
 public class Utility
 {
-    private static final Double unitLength = 0.00015;
+    private static final double unitLength = 0.00015;
+    private static final double EPS = 1e-9;
     private final ObjectMapper objectMapper;
 
     public Utility(ObjectMapper objectMapper)
@@ -38,15 +38,13 @@ public class Utility
         private Position position;
         private Double gScore;
         private Double fScore;
-        private Boolean explored;
 
-        public Node(Node parent, Position position, Double gScore, Double heuristic, boolean explored)
+        public Node(Node parent, Position position, Double gScore, Double heuristic)
         {
             this.parent = parent;
             this.position = position;
             this.gScore = gScore;
             this.fScore = heuristic + this.gScore;
-            this.explored = explored;
         }
 
         @Override
@@ -80,7 +78,8 @@ public class Utility
     //Return list of edges based on the given vertices
     public ArrayList<PositionsRequest> getRegionEdges(Region region)
     {
-        ArrayList<Position> vertices = region.getVertices();
+        // don't mutate the original list by copying
+        ArrayList<Position> vertices = new ArrayList<>(region.getVertices());
 
         //Append the first vertex to the end to ensure the last edge closes the region
         vertices.add(vertices.getFirst());
@@ -158,6 +157,35 @@ public class Utility
 
         //If the ray is lower or higher than the edge, return false
         return false;
+    }
+
+    public boolean isInRegion(PositionRegionRequest Request)
+    {
+        //Ray casting algorithm
+        Position position = Request.getPosition();
+        Region region = Request.getRegion();
+
+        //Number of intersection between the ray and the region edges
+        int count = 0;
+        ArrayList<PositionsRequest> edges = getRegionEdges(region);
+
+        //Iterate through all edges
+        for(PositionsRequest edge : edges)
+        {
+            //If the position is on the edge of the region, return true directly
+            if (isPositionOnEdge(position,edge))
+            {
+                return true;
+            }
+            //Else check if the ray intersect with the edge
+            else if(isEdgeIntersectWithRay(position, edge))
+            {
+                count++;
+            }
+        }
+
+        //If the number of intersection is odd, then the position is inside the region
+        return count % 2 != 0;
     }
 
     // Called by the main loop, try the get the attribute value based on the string
@@ -271,11 +299,6 @@ public class Utility
             result = false;
         }
 
-        if(requirements.getMaxCost() != null)
-        {
-
-        }
-
         return result;
     }
 
@@ -338,38 +361,165 @@ public class Utility
         return medicineDispatchRequestsByDate;
     }
 
-    public Position getServicePointPositionByDroneIdAndTime(String droneId,ArrayList<ServicePointDrones> servicePointDrones, ArrayList<ServicePoint> servicePoints, LocalDate date, LocalTime time)
+
+    // For a given date time and a given drone, return position of the service point if the drone is available there
+    public Position getServicePointPosition(String droneId, ArrayList<ServicePointDrones> servicePointsDrones, ArrayList<ServicePoint> servicePoints, LocalDate date, LocalTime time)
     {
         int servicePointId = -1;
-
-        for (ServicePointDrones servicePointDrone: servicePointDrones)
+        for (ServicePointDrones servicePointDrone: servicePointsDrones)
         {
-            servicePointId = servicePointDrone.getServicePointId();
-            boolean found = false;
-            for (DroneAvailability droneAvailability: servicePointDrone.getDrones())
+            for (DroneAvailability droneAvailability : servicePointDrone.getDrones())
             {
-                String id = droneAvailability.getId();
-                if (id.equals(droneId))
+                if (droneId.equals(droneAvailability.getId()))
                 {
-                    found = true;
+                    for (Availability availability: droneAvailability.getAvailability())
+                    {
+                        if(availability.getDayOfWeek().equals(date.getDayOfWeek()))
+                        {
+                            if(time.isAfter(availability.getFrom()) && time.isBefore(availability.getUntil()))
+                            {
+                                servicePointId = servicePointDrone.getServicePointId();
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (servicePointId != -1)
+                {
                     break;
                 }
             }
-            if (found)
+            if (servicePointId != -1)
             {
                 break;
             }
         }
 
-        for (ServicePoint servicePoint: servicePoints)
+        Position servicePointPosition = null;
+        if  (servicePointId != -1)
         {
-            if  (servicePoint.getId().equals(servicePointId))
+            for (ServicePoint servicePoint: servicePoints)
             {
-                return servicePoint.getPosition();
+                if (servicePoint.getId().equals(servicePointId))
+                {
+                    servicePointPosition = servicePoint.getLocation();
+                    break;
+                }
+            }
+        }
+        return servicePointPosition;
+    }
+
+
+    public void addDeliveriesToRetunedPath(String droneId, Integer deliveryId, ArrayList<Position> delivery, ReturnedPath returnedPath)
+    {
+        boolean droneIdStored = false;
+        for (DronePath dronePath: returnedPath.getDronePaths())
+        {
+            if (dronePath.getDroneId().equals(droneId))
+            {
+                droneIdStored = true;
+                dronePath.getDeliveries().add(new Deliveries(deliveryId, delivery));
+                break;
             }
         }
 
-        return null;
+        if(!droneIdStored)
+        {
+            ArrayList<Deliveries> deliveries = new ArrayList<>();
+            deliveries.add(new Deliveries(deliveryId, delivery));
+            DronePath newDronePath = new DronePath(droneId,deliveries);
+            returnedPath.getDronePaths().add(newDronePath);
+        }
+
+    }
+
+    private double orient(Position a, Position b, Position c) {
+        double x1 = b.getLng() - a.getLng();
+        double y1 = b.getLat() - a.getLat();
+        double x2 = c.getLng() - a.getLng();
+        double y2 = c.getLat() - a.getLat();
+        return x1 * y2 - y1 * x2;
+    }
+
+    private boolean onSegment(Position a, Position b, Position c) {
+        // assume a,b,c are collinear; check if c is between a and b (inclusive)
+        double minLng = Math.min(a.getLng(), b.getLng()) - EPS;
+        double maxLng = Math.max(a.getLng(), b.getLng()) + EPS;
+        double minLat = Math.min(a.getLat(), b.getLat()) - EPS;
+        double maxLat = Math.max(a.getLat(), b.getLat()) + EPS;
+        return c.getLng() >= minLng && c.getLng() <= maxLng && c.getLat() >= minLat && c.getLat() <= maxLat;
+    }
+
+    public boolean segmentsIntersect(Position p1, Position p2, Position q1, Position q2)
+    {
+        double o1 = orient(p1, p2, q1);
+        double o2 = orient(p1, p2, q2);
+        double o3 = orient(q1, q2, p1);
+        double o4 = orient(q1, q2, p2);
+
+        // Proper intersection
+        if (o1 * o2 < 0 && o3 * o4 < 0) {
+            return true;
+        }
+
+        // Collinear / Touching cases
+        if (Math.abs(o1) < EPS && onSegment(p1, p2, q1)) return true;
+        if (Math.abs(o2) < EPS && onSegment(p1, p2, q2)) return true;
+        if (Math.abs(o3) < EPS && onSegment(q1, q2, p1)) return true;
+        if (Math.abs(o4) < EPS && onSegment(q1, q2, p2)) return true;
+
+        return false;
+    }
+
+    public boolean isPathIntersectingAreaEdges(PositionsRequest path, RestrictedArea restrictedArea)
+    {
+        boolean intersects = false;
+        ArrayList<PositionsRequest> edges = getRegionEdges(new Region(restrictedArea.getName(), restrictedArea.getVertices()));
+
+        Position p1 = path.getPosition1();
+        Position p2 = path.getPosition2();
+
+        for (PositionsRequest edge : edges)
+        {
+            Position q1 = edge.getPosition1();
+            Position q2 = edge.getPosition2();
+
+            if (segmentsIntersect(p1, p2, q1, q2))
+            {
+                intersects = true;
+                break;
+            }
+        }
+        return intersects;
+    }
+
+
+
+    public boolean isPathCrossingRestrictionArea (PositionsRequest path, ArrayList<RestrictedArea> restrictedAreas)
+    {
+        boolean crossed = false;
+
+        for (RestrictedArea restrictedArea: restrictedAreas)
+        {
+            Region region = new Region(restrictedArea.getName(), restrictedArea.getVertices());
+            PositionRegionRequest positionRegionRequest = new PositionRegionRequest(path.getPosition2(),region);
+            if(isInRegion(positionRegionRequest) || isPathIntersectingAreaEdges(path,restrictedArea))
+            {
+                crossed = true;
+                break;
+            }
+        }
+
+        return crossed;
+    }
+
+    public String getKey(Position position)
+    {
+        long lngRounded = Math.round(position.getLng() / unitLength);
+        long latRounded = Math.round(position.getLat() / unitLength);
+
+        return lngRounded + "," + latRounded;
     }
 
     public ArrayList<Position> calculatePath(Node node, Position end)
@@ -381,6 +531,7 @@ public class Utility
             path.add(node.position);
             node = node.parent;
         }
+        path.add(node.position);
         Collections.reverse(path); // Reverses the path from [end...start] to [start...end]
         return path;
     }
@@ -388,31 +539,39 @@ public class Utility
     public ArrayList<Position> aStarSearch(Position start, Position end, ArrayList<RestrictedArea> restrictedAreas)
     {
         // Set up
+        int expansions = 0;
+        int maxExpansions = 1000000;
         PriorityQueue<Node> minHeap = new PriorityQueue<>();
-        minHeap.add(new Node( null, start,0.0,calculateDistance(start,end),false));
-
+        Set<String> visited = new HashSet<>();
+        minHeap.add(new Node( null, start,0.0,calculateDistance(start,end)));
 
         //main loop
         while (!minHeap.isEmpty())
         {
             Node u = minHeap.poll();
+
+            if (expansions++ > maxExpansions)
+            {
+                return new ArrayList<>(); // treat as "no path", too many expansions
+            }
+
             if (calculateDistance(u.getPosition(), end) < unitLength)
             {
                 return calculatePath(u,end);
             }
-            if (!u.getExplored())
+            if (!visited.contains(getKey(u.getPosition())))
             {
-                u.setExplored(true);
+                visited.add(getKey(u.getPosition()));
                 for (double angle = 0.0; angle < 360; angle += 22.5)
                 {
-                    Double nextLng = unitLength * Math.cos(angle) + u.getPosition().getLng();
-                    Double nextLat = unitLength * Math.sin(angle) + u.getPosition().getLat();
+                    double angleRad = Math.toRadians(angle);
+                    Double nextLng = unitLength * Math.cos(angleRad) + u.getPosition().getLng();
+                    Double nextLat = unitLength * Math.sin(angleRad) + u.getPosition().getLat();
                     Position nextPosition = new Position(nextLng,nextLat);
-                    if (!nextLng.equals(u.getPosition().getLng()) && !nextLat.equals(u.getPosition().getLat()))
+                    PositionsRequest path = new  PositionsRequest(u.getPosition(),nextPosition);
+                    if (!nextLng.equals(u.getPosition().getLng()) && !nextLat.equals(u.getPosition().getLat()) && !isPathCrossingRestrictionArea(path,restrictedAreas))
                     {
-                        //TODO condition might be wrong
-                        //TODO prevent going back and forth
-                        Node v = new Node(u, u.getPosition(), u.getGScore() + unitLength, calculateDistance(nextPosition, end),false);
+                        Node v = new Node(u, nextPosition, u.getGScore() + unitLength, calculateDistance(nextPosition, end));
                         minHeap.add(v);
                     }
                 }

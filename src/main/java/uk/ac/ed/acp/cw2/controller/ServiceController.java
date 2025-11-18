@@ -130,6 +130,16 @@ public class ServiceController
         return restService.calcDeliveryPath(queries,servicePoints,restrictedAreas,drones,servicePointDrones);
     }
 
+    @PostMapping("/calcDeliveryPathAsGeoJson")
+    public GeoJson calcDeliveryPathAsGeoJson(@RequestBody ArrayList<MedicineDispatchRequest> queries)
+    {
+        ArrayList<ServicePoint>  servicePoints = dataFetchService.getServicePoints();
+        ArrayList<RestrictedArea>  restrictedAreas = dataFetchService.getRestrictedAreas();
+        ArrayList<Drone> drones = dataFetchService.getDrones();
+        ArrayList<ServicePointDrones> servicePointDrones = dataFetchService.getServicePointsDrones();
+        return restService.calcDeliveryPathAsGeoJson(queries,servicePoints,restrictedAreas,drones,servicePointDrones);
+    }
+
 
 
 
