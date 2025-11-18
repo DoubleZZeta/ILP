@@ -21,14 +21,12 @@ public class RestServiceImplementation implements RestService
 
     private final Utility utility;
     private static final Double unitLength = 0.00015;
-    private final CachingOperationInvokerAdvisor cachingOperationInvokerAdvisor;
 
     //Dependency inject the utility clas
     @Autowired
-    public RestServiceImplementation(final Utility utility, CachingOperationInvokerAdvisor cachingOperationInvokerAdvisor)
+    public RestServiceImplementation(final Utility utility)
     {
         this.utility = utility;
-        this.cachingOperationInvokerAdvisor = cachingOperationInvokerAdvisor;
     }
 
     @Override
@@ -340,7 +338,7 @@ public class RestServiceImplementation implements RestService
     public GeoJson calcDeliveryPathAsGeoJson(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones)
     {
         ReturnedPath returnedPath = null;
-        GeoJson returnedGeoJson = null;
+        GeoJson returnedGeoJson = new GeoJson("LineString",new ArrayList<>());;
         for(Drone drone : drones)
         {
             ArrayList<Drone> singleDrone = new ArrayList<>();
