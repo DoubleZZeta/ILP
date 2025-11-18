@@ -22,7 +22,7 @@ import java.util.*;
 public class Utility
 {
     private static final double unitLength = 0.00015;
-    private static final double EPS = 1e-9;
+    private static final double error = 1e-9;
     private final ObjectMapper objectMapper;
 
     public Utility(ObjectMapper objectMapper)
@@ -444,10 +444,10 @@ public class Utility
 
     private boolean onSegment(Position a, Position b, Position c) {
         // assume a,b,c are collinear; check if c is between a and b (inclusive)
-        double minLng = Math.min(a.getLng(), b.getLng()) - EPS;
-        double maxLng = Math.max(a.getLng(), b.getLng()) + EPS;
-        double minLat = Math.min(a.getLat(), b.getLat()) - EPS;
-        double maxLat = Math.max(a.getLat(), b.getLat()) + EPS;
+        double minLng = Math.min(a.getLng(), b.getLng()) - error;
+        double maxLng = Math.max(a.getLng(), b.getLng()) + error;
+        double minLat = Math.min(a.getLat(), b.getLat()) - error;
+        double maxLat = Math.max(a.getLat(), b.getLat()) + error;
         return c.getLng() >= minLng && c.getLng() <= maxLng && c.getLat() >= minLat && c.getLat() <= maxLat;
     }
 
@@ -464,10 +464,10 @@ public class Utility
         }
 
         // Collinear / Touching cases
-        if (Math.abs(o1) < EPS && onSegment(p1, p2, q1)) return true;
-        if (Math.abs(o2) < EPS && onSegment(p1, p2, q2)) return true;
-        if (Math.abs(o3) < EPS && onSegment(q1, q2, p1)) return true;
-        if (Math.abs(o4) < EPS && onSegment(q1, q2, p2)) return true;
+        if (Math.abs(o1) < error && onSegment(p1, p2, q1)) return true;
+        if (Math.abs(o2) < error && onSegment(p1, p2, q2)) return true;
+        if (Math.abs(o3) < error && onSegment(q1, q2, p1)) return true;
+        if (Math.abs(o4) < error && onSegment(q1, q2, p2)) return true;
 
         return false;
     }
@@ -581,6 +581,59 @@ public class Utility
         }
 
         return new ArrayList<>();
+    }
+
+    public boolean isDroneDeliveredAll(ReturnedPath path, ArrayList<MedicineDispatchRequest> queries)
+    {
+        // No valid routes
+        if (path == null || path.getDronePaths() == null || path.getDronePaths().isEmpty())
+        {
+            return false;
+        }
+
+        boolean deliveredAll = true;
+        Set<Integer> deliveredQueryIds = new HashSet<>();
+        for (DronePath dronePath: path.getDronePaths())
+        {
+            for (Deliveries deliveries: dronePath.getDeliveries())
+            {
+                if(deliveries.getDeliveryId() != null && !deliveries.getFlightPath().isEmpty())
+                {
+                    deliveredQueryIds.add(deliveries.getDeliveryId());
+                }
+            }
+        }
+
+        for(MedicineDispatchRequest query: queries)
+        {
+            if (!deliveredQueryIds.contains(query.getId()))
+            {
+                deliveredAll = false;
+                break;
+            }
+        }
+
+        return  deliveredAll;
+    }
+
+    public GeoJson toGeoJson(ReturnedPath path)
+    {
+        GeoJson geoJson = new GeoJson("LineString",new ArrayList<>());
+        for (DronePath dronePath: path.getDronePaths())
+        {
+            for (Deliveries deliveries: dronePath.getDeliveries())
+            {
+                for (Position position: deliveries.getFlightPath())
+                {
+                    ArrayList<Double> lngLat = new ArrayList<>();
+                    lngLat.add(position.getLng());
+                    lngLat.add(position.getLat());
+                    geoJson.getCoordinates().add(lngLat);
+                }
+            }
+        }
+
+        return  geoJson;
     }
 
 

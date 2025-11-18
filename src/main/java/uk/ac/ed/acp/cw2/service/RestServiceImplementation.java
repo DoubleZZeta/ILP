@@ -339,7 +339,25 @@ public class RestServiceImplementation implements RestService
     @Override
     public GeoJson calcDeliveryPathAsGeoJson(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones)
     {
-        return null;
+        ReturnedPath returnedPath = null;
+        GeoJson returnedGeoJson = null;
+        for(Drone drone : drones)
+        {
+            ArrayList<Drone> singleDrone = new ArrayList<>();
+            singleDrone.add(drone);
+            returnedPath = calcDeliveryPath(queries, servicePoints, restrictedAreas, singleDrone, servicePointDrones);
+            if (utility.isDroneDeliveredAll(returnedPath, queries))
+            {
+                break;
+            }
+        }
+
+        if (returnedPath != null)
+        {
+            returnedGeoJson = utility.toGeoJson(returnedPath);
+        }
+
+        return returnedGeoJson;
     }
 
 }
