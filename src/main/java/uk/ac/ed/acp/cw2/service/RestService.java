@@ -16,7 +16,7 @@ public interface RestService
     ArrayList<String> droneWithCooling(ArrayList<Drone> drones, boolean state);
     Drone droneDetails (ArrayList<Drone> drones, String droneId);
     ArrayList<String> query (ArrayList<Drone> drones, ArrayList<QueryRequest> queries);
-    ArrayList<String> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones, ArrayList<MedicineDispatchRequest> queries);
+    ArrayList<String> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones, ArrayList<ServicePoint> servicePoints,ArrayList<MedicineDispatchRequest> queries);
     ReturnedPath calcDeliveryPath(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones);
     GeoJson calcDeliveryPathAsGeoJson(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones);
 

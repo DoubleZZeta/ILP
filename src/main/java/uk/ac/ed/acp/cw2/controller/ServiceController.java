@@ -80,13 +80,15 @@ public class ServiceController
     @GetMapping("/dronesWithCooling/{state}")
     public ArrayList<String> dronesWithCooling(@PathVariable("state") boolean state)
     {
-        return restService.droneWithCooling(dataFetchService.getDrones(), state);
+        ArrayList<Drone> drones = dataFetchService.getDrones();
+        return restService.droneWithCooling(drones, state);
     }
 
     @GetMapping("/droneDetails/{id}")
     public ResponseEntity<Drone> droneDetails(@PathVariable("id") String id)
     {
-        Drone drone = restService.droneDetails(dataFetchService.getDrones(),id);
+        ArrayList<Drone> drones = dataFetchService.getDrones();
+        Drone drone = restService.droneDetails(drones,id);
 
         if (drone == null)
         {
@@ -103,19 +105,24 @@ public class ServiceController
         QueryRequest queryRequest = new QueryRequest(attributeName,"=", attributeValue);
         queries.add(queryRequest);
 
-        return restService.query(dataFetchService.getDrones(), queries);
+        ArrayList<Drone> drones = dataFetchService.getDrones();
+        return restService.query(drones, queries);
     }
 
     @PostMapping("/query")
     public ArrayList<String> query(@RequestBody ArrayList<QueryRequest> queries)
     {
-        return restService.query(dataFetchService.getDrones(), queries);
+        ArrayList<Drone> drones = dataFetchService.getDrones();
+        return restService.query(drones, queries);
     }
 
     @PostMapping("/queryAvailableDrones")
     public ArrayList<String> queryAvailableDrones(@RequestBody ArrayList<MedicineDispatchRequest> queries)
     {
-        return restService.queryAvailableDrones(dataFetchService.getDrones(), dataFetchService.getServicePointsDrones(), queries);
+        ArrayList<ServicePoint>  servicePoints = dataFetchService.getServicePoints();
+        ArrayList<Drone> drones = dataFetchService.getDrones();
+        ArrayList<ServicePointDrones> servicePointDrones = dataFetchService.getServicePointsDrones();
+        return restService.queryAvailableDrones(drones, servicePointDrones, servicePoints, queries);
     }
 
     @PostMapping("/calcDeliveryPath")

@@ -1,7 +1,6 @@
 package uk.ac.ed.acp.cw2.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.endpoint.invoker.cache.CachingOperationInvokerAdvisor;
 import org.springframework.stereotype.Service;
 import uk.ac.ed.acp.cw2.data.*;
 import uk.ac.ed.acp.cw2.utility.Utility;
@@ -135,15 +134,12 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public ArrayList<String> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones, ArrayList<MedicineDispatchRequest> queries)
+    public ArrayList<String> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones, ArrayList<ServicePoint> servicePoints, ArrayList<MedicineDispatchRequest> queries)
     {
         String id;
         LocalDate date;
         LocalTime time;
-        ArrayList<Availability> availabilities;
-        Capability capability;
-        Requirements requirements;
-        Position delivery;
+        Position droneBase;
 
         ArrayList<String> droneIds = new ArrayList<>();
         Map<String, ArrayList<Availability>> availabilityMap = utility.getAvailabilityMap(servicePointDrones);
@@ -165,13 +161,10 @@ public class RestServiceImplementation implements RestService
                 {
                     date = query.getDate();
                     time = query.getTime();
-                    availabilities = availabilityMap.get(id);
-                    capability = drone.getCapability();
-                    requirements = query.getRequirements();
-                    delivery = query.getDelivery();
+                    droneBase = utility.getServicePointPosition(id, servicePointDrones,servicePoints, date, time);
 
-                    droneIsAvailable = utility.checkDroneIsAvailable(availabilities,date,time);
-                    droneMeetsRequirements = utility.checkDroneMeetsRequirements(capability, requirements, delivery);
+                    droneIsAvailable = utility.checkDroneIsAvailable(drone,query, availabilityMap);
+                    droneMeetsRequirements = utility.checkDroneMeetsRequirements(drone, query, droneBase);
 
                     if (!(droneIsAvailable && droneMeetsRequirements))
                     {
@@ -338,13 +331,13 @@ public class RestServiceImplementation implements RestService
     public GeoJson calcDeliveryPathAsGeoJson(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones)
     {
         ReturnedPath returnedPath = null;
-        GeoJson returnedGeoJson = new GeoJson("LineString",new ArrayList<>());;
+        GeoJson returnedGeoJson = new GeoJson("LineString",new ArrayList<>());
         for(Drone drone : drones)
         {
             ArrayList<Drone> singleDrone = new ArrayList<>();
             singleDrone.add(drone);
             returnedPath = calcDeliveryPath(queries, servicePoints, restrictedAreas, singleDrone, servicePointDrones);
-            if (utility.isDroneDeliveredAll(returnedPath, queries))
+            if (utility.hasDroneDeliveredAll(returnedPath, queries))
             {
                 break;
             }

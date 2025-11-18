@@ -280,8 +280,10 @@ public class Utility
         return availabilityMap;
     }
 
-    public boolean checkDroneMeetsRequirements(Capability capability, Requirements requirements, Position delivery)
+    public boolean checkDroneMeetsRequirements(Drone drone, MedicineDispatchRequest query, Position droneBase)
     {
+        Requirements requirements = query.getRequirements();
+        Capability capability = drone.getCapability();
         boolean result = true;
 
         if(requirements.getCapacity() > capability.getCapacity())
@@ -299,11 +301,37 @@ public class Utility
             result = false;
         }
 
+        if(requirements.getMaxCost() != null)
+        {
+            if (droneBase == null)
+            {
+                result = false;
+            }
+            else
+            {
+                double distance = calculateDistance(query.getDelivery(), droneBase) * 2;
+                double moves = Math.round( distance / unitLength);
+                double cost = capability.getCostInitial() + capability.getCostFinal() + moves * capability.getCostPerMove();
+                boolean deliveryExceedsMaxMove = (moves > capability.getMaxMoves());
+                boolean deliveryExceedsMaxCost = (cost > requirements.getMaxCost());
+
+                if (!(deliveryExceedsMaxMove && deliveryExceedsMaxCost))
+                {
+                    result = false;
+                }
+            }
+        }
+
+
+
         return result;
     }
 
-    public boolean checkDroneIsAvailable(ArrayList<Availability> availabilities, LocalDate date, LocalTime time)
+    public boolean checkDroneIsAvailable(Drone drone, MedicineDispatchRequest query, Map<String, ArrayList<Availability>> availabilityMap)
     {
+        ArrayList<Availability> availabilities = availabilityMap.get(drone.getId());
+        LocalDate date = query.getDate();
+        LocalTime time = query.getTime();
         boolean result = false;
         boolean dayOfWeekMatches;
         boolean timeMatches;
@@ -583,7 +611,7 @@ public class Utility
         return new ArrayList<>();
     }
 
-    public boolean isDroneDeliveredAll(ReturnedPath path, ArrayList<MedicineDispatchRequest> queries)
+    public boolean hasDroneDeliveredAll(ReturnedPath path, ArrayList<MedicineDispatchRequest> queries)
     {
         // No valid routes
         if (path == null || path.getDronePaths() == null || path.getDronePaths().isEmpty())
