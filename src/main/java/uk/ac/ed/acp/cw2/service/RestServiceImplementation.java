@@ -188,7 +188,6 @@ public class RestServiceImplementation implements RestService
     @Override
     public ReturnedPath calcDeliveryPath(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointsDrones)
     {
-        //TODO add a while loop for same drone delivery but from different service points
         //TODO optimise the function for getting drone bases
         Set<LocalDate> dates = utility.getAllDates(queries);
         List<LocalDate> sortedDates = dates.stream().sorted().toList();
@@ -205,120 +204,130 @@ public class RestServiceImplementation implements RestService
             queryByDate.sort(Comparator.comparing(MedicineDispatchRequest::getTime));
             for (Drone drone : drones)
             {
-                Capability droneCapability = drone.getCapability();
-                double currentDroneCapacity = droneCapability.getCapacity();
-                int currentDroneMoves = 0;
-                int currentNumberOfDeliveries = 0;
-                double currentCostPerDelivery;
-                double currentLandingAndTakeOffCost = droneCapability.getCostInitial() + droneCapability.getCostFinal();
-                boolean currentDroneCooling = droneCapability.getCooling();
-                boolean currentDroneHeating = droneCapability.getHeating();
-                Position currentDroneBase = null;
-                ArrayList<Position> currentDronePath = new ArrayList<>();
-                ArrayList<MedicineDispatchRequest> delivered = new ArrayList<>();
-                Position start;
-                Position end;
-
-                for(MedicineDispatchRequest query : queryByDate)
+                boolean progress = false;
+                do
                 {
-                    Requirements queryRequirements = query.getRequirements();
-                    LocalTime time = query.getTime();
-                    Position droneBase = utility.getServicePointPosition(drone.getId(), servicePointsDrones, servicePoints, date, time);
+                    progress = false;
+                    Capability droneCapability = drone.getCapability();
+                    double currentDroneCapacity = droneCapability.getCapacity();
+                    int currentDroneMoves = 0;
+                    int currentNumberOfDeliveries = 0;
+                    double currentCostPerDelivery;
+                    double currentLandingAndTakeOffCost = droneCapability.getCostInitial() + droneCapability.getCostFinal();
+                    boolean currentDroneCooling = droneCapability.getCooling();
+                    boolean currentDroneHeating = droneCapability.getHeating();
+                    Position currentDroneBase = null;
+                    ArrayList<Position> currentDronePath = new ArrayList<>();
+                    ArrayList<MedicineDispatchRequest> delivered = new ArrayList<>();
+                    Position start;
+                    Position end;
 
-                    // Current drone is not available
-                    if (droneBase == null)
+                    for(MedicineDispatchRequest query : queryByDate)
                     {
-                        // Move to next drone
-                       continue;
-                    }
+                        Requirements queryRequirements = query.getRequirements();
+                        LocalTime time = query.getTime();
+                        Position droneBase = utility.getServicePointPosition(drone.getId(), servicePointsDrones, servicePoints, date, time);
 
-                    // If we haven't fixed a base for this flight yet, lock it in
-                    if (currentDroneBase == null)
-                    {
-                        currentDroneBase = droneBase;
-                    }
-                    else if (!currentDroneBase.equals(droneBase))
-                    {
-                        // This query would require starting from a different base,
-                        // so it can't belong to this particular string
-                        continue;
-                    }
-
-
-                    boolean canDeliver = true;
-                    if(currentDroneCapacity < queryRequirements.getCapacity())
-                    {
-                        canDeliver = false;
-                    }
-
-                    Boolean reqCooling = queryRequirements.getCooling();
-                    if (reqCooling != null && reqCooling && !currentDroneCooling)
-                    {
-                        canDeliver = false;
-                    }
-
-                    Boolean reqHeating = queryRequirements.getHeating();
-                    if (reqHeating != null && reqHeating && !currentDroneHeating)
-                    {
-                        canDeliver = false;
-                    }
-
-                    if (canDeliver)
-                    {
-                        if(currentDronePath.isEmpty())
+                        // Current drone is not available
+                        if (droneBase == null)
                         {
-                            start = droneBase;
-                        }
-                        else
-                        {
-                            start = currentDronePath.getLast(); // Java DO have getLast()
-                        }
-                        end = query.getDelivery();
-
-                        ArrayList<Position> toDeliver = utility.aStarSearch(start,end,restrictedAreas);
-                        int movesTo = toDeliver.size();
-                        ArrayList<Position> toBase = utility.aStarSearch(end,droneBase,restrictedAreas);
-                        int movesBack = toBase.size();
-
-                        if (toDeliver.isEmpty() || toBase.isEmpty())
-                        {
-                            // no valid path, treat as cannot deliver this query
+                            // Move to next drone
                             continue;
                         }
 
-                        int estimatedCurrentDroneMoves = currentDroneMoves + (movesTo + movesBack);
-                        int estimatedCurrentNumberOfDeliveries = currentNumberOfDeliveries + 1;
-                        double estimatedCurrentFlightCost = currentLandingAndTakeOffCost + estimatedCurrentDroneMoves * droneCapability.getCostPerMove();
-                        currentCostPerDelivery = estimatedCurrentFlightCost / estimatedCurrentNumberOfDeliveries;
-
-                        if((estimatedCurrentDroneMoves <= droneCapability.getMaxMoves()) && (currentCostPerDelivery <= queryRequirements.getMaxCost()))
+                        // If we haven't fixed a base for this flight yet, lock it in
+                        if (currentDroneBase == null)
                         {
-
-                            currentDroneMoves += movesTo;
-                            currentNumberOfDeliveries += 1;
-                            currentDroneCapacity -=  queryRequirements.getCapacity();
-                            currentDronePath.addAll(toDeliver);
-                            delivered.add(query);
-
-                            totalMoves += movesTo;
-
-                            // For hover
-                            toDeliver.add(toDeliver.getLast());
-                            utility.addDeliveriesToRetunedPath(drone.getId(),query.getId(),toDeliver,returnedPath);
+                            currentDroneBase = droneBase;
                         }
+                        else if (!currentDroneBase.equals(droneBase))
+                        {
+                            // This query would require starting from a different base,
+                            // so it can't belong to this particular string
+                            continue;
+                        }
+
+
+                        boolean canDeliver = true;
+                        if(currentDroneCapacity < queryRequirements.getCapacity())
+                        {
+                            canDeliver = false;
+                        }
+
+                        Boolean reqCooling = queryRequirements.getCooling();
+                        if (reqCooling != null && reqCooling && !currentDroneCooling)
+                        {
+                            canDeliver = false;
+                        }
+
+                        Boolean reqHeating = queryRequirements.getHeating();
+                        if (reqHeating != null && reqHeating && !currentDroneHeating)
+                        {
+                            canDeliver = false;
+                        }
+
+                        if (canDeliver)
+                        {
+                            if(currentDronePath.isEmpty())
+                            {
+                                start = droneBase;
+                            }
+                            else
+                            {
+                                start = currentDronePath.getLast(); // Java DO have getLast()
+                            }
+                            end = query.getDelivery();
+
+                            ArrayList<Position> toDeliver = utility.aStarSearch(start,end,restrictedAreas);
+                            int movesTo = toDeliver.size();
+                            ArrayList<Position> toBase = utility.aStarSearch(end,droneBase,restrictedAreas);
+                            int movesBack = toBase.size();
+
+                            if (toDeliver.isEmpty() || toBase.isEmpty())
+                            {
+                                // no valid path, treat as cannot deliver this query
+                                continue;
+                            }
+
+                            int estimatedCurrentDroneMoves = currentDroneMoves + (movesTo + movesBack);
+                            int estimatedCurrentNumberOfDeliveries = currentNumberOfDeliveries + 1;
+                            double estimatedCurrentFlightCost = currentLandingAndTakeOffCost + estimatedCurrentDroneMoves * droneCapability.getCostPerMove();
+                            currentCostPerDelivery = estimatedCurrentFlightCost / estimatedCurrentNumberOfDeliveries;
+
+                            if((estimatedCurrentDroneMoves <= droneCapability.getMaxMoves()) && (currentCostPerDelivery <= queryRequirements.getMaxCost()))
+                            {
+
+                                currentDroneMoves += movesTo;
+                                currentNumberOfDeliveries += 1;
+                                currentDroneCapacity -=  queryRequirements.getCapacity();
+                                currentDronePath.addAll(toDeliver);
+                                delivered.add(query);
+
+                                totalMoves += movesTo;
+
+                                // For hover
+                                toDeliver.add(toDeliver.getLast());
+                                utility.addDeliveriesToRetunedPath(drone.getId(),query.getId(),toDeliver,returnedPath);
+                            }
+                        }
+
+                    }
+                    // close flight if  did anything
+                    if (!currentDronePath.isEmpty())
+                    {
+                        progress = true;
+                        Position last = currentDronePath.getLast();
+                        ArrayList<Position> back = utility.aStarSearch(last, currentDroneBase, restrictedAreas);
+                        utility.addDeliveriesToRetunedPath(drone.getId(),null,back,returnedPath);
+                        currentDroneMoves += back.size();
+                        totalMoves += back.size();
+                        totalCost += currentLandingAndTakeOffCost + currentDroneMoves * droneCapability.getCostPerMove();
+                        queryByDate.removeAll(delivered);
                     }
 
                 }
-                if (!currentDronePath.isEmpty()) 
-                {
-                    Position last = currentDronePath.getLast();
-                    ArrayList<Position> back = utility.aStarSearch(last, currentDroneBase, restrictedAreas);
-                    utility.addDeliveriesToRetunedPath(drone.getId(),null,back,returnedPath);
-                    currentDroneMoves += back.size();
-                    totalMoves += back.size();
-                    totalCost += currentLandingAndTakeOffCost + currentDroneMoves * droneCapability.getCostPerMove();
-                }
-                queryByDate.removeAll(delivered);
+                while(progress && !queryByDate.isEmpty());
+
             }
 
         }
