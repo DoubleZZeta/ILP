@@ -309,14 +309,9 @@ public class Utility
             }
             else
             {
-                System.out.println("droneId:" +  drone.getId());
                 double distance = calculateDistance(query.getDelivery(), droneBase) * 2;
-                System.out.println("maxCost:" + requirements.getMaxCost() + "   " + "maxMoves:" + capability.getMaxMoves());
                 double moves = Math.round( distance / unitLength);
                 double cost = capability.getCostInitial() + capability.getCostFinal() + moves * capability.getCostPerMove();
-                System.out.println("calculated cost:" + cost + "   " + "calculated moves:" + moves);
-                System.out.println();
-
 
                 boolean deliveryExceedsMaxMove = (moves > capability.getMaxMoves());
                 boolean deliveryExceedsMaxCost = (cost > requirements.getMaxCost());
@@ -356,7 +351,7 @@ public class Utility
 
             if (time != null)
             {
-                timeMatches = (availability.getFrom().isBefore(time) && availability.getUntil().isAfter(time));
+                timeMatches = !time.isBefore(availability.getFrom()) && !time.isAfter(availability.getUntil());
             }
             else
             {
@@ -410,7 +405,7 @@ public class Utility
                     {
                         if(availability.getDayOfWeek().equals(date.getDayOfWeek()))
                         {
-                            if(time.isAfter(availability.getFrom()) && time.isBefore(availability.getUntil()))
+                            if(!time.isBefore(availability.getFrom()) && !time.isAfter(availability.getUntil()))
                             {
                                 servicePointId = servicePointDrone.getServicePointId();
                                 break;
@@ -476,8 +471,9 @@ public class Utility
         return x1 * y2 - y1 * x2;
     }
 
+    //using error to prevent floating point error
     private boolean onSegment(Position a, Position b, Position c) {
-        // assume a,b,c are collinear; check if c is between a and b (inclusive)
+        // check if c is between a and b (inclusive)
         double minLng = Math.min(a.getLng(), b.getLng()) - error;
         double maxLng = Math.max(a.getLng(), b.getLng()) + error;
         double minLat = Math.min(a.getLat(), b.getLat()) - error;
@@ -485,6 +481,7 @@ public class Utility
         return c.getLng() >= minLng && c.getLng() <= maxLng && c.getLat() >= minLat && c.getLat() <= maxLat;
     }
 
+    //using error to prevent floating point error
     public boolean segmentsIntersect(Position p1, Position p2, Position q1, Position q2)
     {
         double o1 = orient(p1, p2, q1);
@@ -492,16 +489,29 @@ public class Utility
         double o3 = orient(q1, q2, p1);
         double o4 = orient(q1, q2, p2);
 
-        // Proper intersection
-        if (o1 * o2 < 0 && o3 * o4 < 0) {
+        // intersection
+        if (o1 * o2 < 0 && o3 * o4 < 0)
+        {
             return true;
         }
 
-        // Collinear / Touching cases
-        if (Math.abs(o1) < error && onSegment(p1, p2, q1)) return true;
-        if (Math.abs(o2) < error && onSegment(p1, p2, q2)) return true;
-        if (Math.abs(o3) < error && onSegment(q1, q2, p1)) return true;
-        if (Math.abs(o4) < error && onSegment(q1, q2, p2)) return true;
+        // Touching cases
+        if (Math.abs(o1) < error && onSegment(p1, p2, q1))
+        {
+            return true;
+        }
+        if (Math.abs(o2) < error && onSegment(p1, p2, q2))
+        {
+            return true;
+        }
+        if (Math.abs(o3) < error && onSegment(q1, q2, p1))
+        {
+            return true;
+        }
+        if (Math.abs(o4) < error && onSegment(q1, q2, p2))
+        {
+            return true;
+        }
 
         return false;
     }
