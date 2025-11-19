@@ -163,6 +163,7 @@ public class RestServiceImplementation implements RestService
                     time = query.getTime();
                     droneBase = utility.getServicePointPosition(id, servicePointDrones,servicePoints, date, time);
 
+                    System.out.println("droneId before checking:" +  drone.getId());
                     droneIsAvailable = utility.checkDroneIsAvailable(drone,query, availabilityMap);
                     droneMeetsRequirements = utility.checkDroneMeetsRequirements(drone, query, droneBase);
 
@@ -204,7 +205,7 @@ public class RestServiceImplementation implements RestService
             queryByDate.sort(Comparator.comparing(MedicineDispatchRequest::getTime));
             for (Drone drone : drones)
             {
-                boolean progress = false;
+                boolean progress;
                 do
                 {
                     progress = false;
@@ -274,7 +275,7 @@ public class RestServiceImplementation implements RestService
                             }
                             else
                             {
-                                start = currentDronePath.getLast(); // Java DO have getLast()
+                                start = currentDronePath.getLast();
                             }
                             end = query.getDelivery();
 
@@ -294,7 +295,7 @@ public class RestServiceImplementation implements RestService
                             double estimatedCurrentFlightCost = currentLandingAndTakeOffCost + estimatedCurrentDroneMoves * droneCapability.getCostPerMove();
                             currentCostPerDelivery = estimatedCurrentFlightCost / estimatedCurrentNumberOfDeliveries;
 
-                            if((estimatedCurrentDroneMoves <= droneCapability.getMaxMoves()) && (currentCostPerDelivery <= queryRequirements.getMaxCost()))
+                            if( (queryRequirements.getMaxCost() == null) || ((estimatedCurrentDroneMoves <= droneCapability.getMaxMoves()) && (currentCostPerDelivery <= queryRequirements.getMaxCost())))
                             {
 
                                 currentDroneMoves += movesTo;

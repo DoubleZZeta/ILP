@@ -1,6 +1,5 @@
 package uk.ac.ed.acp.cw2.data;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,10 +14,10 @@ public class MedicineDispatchRequest
 {
     private Integer id;
 
-    @JsonFormat (pattern = "yyyy-MM-dd")
+    //@JsonFormat (pattern = "yyyy-MM-dd")
     private LocalDate date;
 
-    @JsonFormat (pattern = "HH:mm")
+    //@JsonFormat (pattern = "HH:mm")
     private LocalTime time;
 
     private Requirements requirements;

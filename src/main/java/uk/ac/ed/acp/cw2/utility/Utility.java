@@ -309,13 +309,19 @@ public class Utility
             }
             else
             {
+                System.out.println("droneId:" +  drone.getId());
                 double distance = calculateDistance(query.getDelivery(), droneBase) * 2;
+                System.out.println("maxCost:" + requirements.getMaxCost() + "   " + "maxMoves:" + capability.getMaxMoves());
                 double moves = Math.round( distance / unitLength);
                 double cost = capability.getCostInitial() + capability.getCostFinal() + moves * capability.getCostPerMove();
+                System.out.println("calculated cost:" + cost + "   " + "calculated moves:" + moves);
+                System.out.println();
+
+
                 boolean deliveryExceedsMaxMove = (moves > capability.getMaxMoves());
                 boolean deliveryExceedsMaxCost = (cost > requirements.getMaxCost());
 
-                if (!(deliveryExceedsMaxMove && deliveryExceedsMaxCost))
+                if (deliveryExceedsMaxMove || deliveryExceedsMaxCost)
                 {
                     result = false;
                 }
