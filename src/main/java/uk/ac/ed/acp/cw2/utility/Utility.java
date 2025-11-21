@@ -268,15 +268,14 @@ public class Utility
     public Map<String, ArrayList<Availability>>  getAvailabilityMap(ArrayList<ServicePointDrones> droneServicePoints)
     {
         Map<String, ArrayList<Availability>> availabilityMap = new HashMap<>();
-        for (ServicePointDrones droneServicePoint: droneServicePoints)
-        {
-            for (DroneAvailability droneAvailability: droneServicePoint.getDrones())
-            {
-                String id = droneAvailability.getId();
-                availabilityMap.put(id, droneAvailability.getAvailability());
+        for (ServicePointDrones dsp : droneServicePoints) {
+            for (DroneAvailability da : dsp.getDrones()) {
+                String id = da.getId();
+                availabilityMap
+                        .computeIfAbsent(id, k -> new ArrayList<>())
+                        .addAll(da.getAvailability());
             }
         }
-
         return availabilityMap;
     }
 
@@ -313,8 +312,8 @@ public class Utility
                 double moves = Math.round( distance / unitLength);
                 double cost = capability.getCostInitial() + capability.getCostFinal() + moves * capability.getCostPerMove();
 
-                boolean deliveryNotExceedsMaxMove = (moves < capability.getMaxMoves());
-                boolean deliveryNotExceedsMaxCost = ((requirements.getMaxCost() == null) || (cost < requirements.getMaxCost()));
+                boolean deliveryNotExceedsMaxMove = (moves <= capability.getMaxMoves());
+                boolean deliveryNotExceedsMaxCost = ((requirements.getMaxCost() == null) || (cost <= requirements.getMaxCost()));
 
                 if (!(deliveryNotExceedsMaxMove && deliveryNotExceedsMaxCost))
                 {
@@ -336,6 +335,11 @@ public class Utility
         boolean result = false;
         boolean dayOfWeekMatches;
         boolean timeMatches;
+
+        if (availabilities == null || availabilities.isEmpty())
+        {
+            return false;
+        }
 
 
         for (Availability availability: availabilities)
@@ -569,7 +573,6 @@ public class Utility
     public ArrayList<Position> calculatePath(Node node, Position end)
     {
         ArrayList<Position> path = new ArrayList<>();
-        path.add(end);
         while(node.parent != null)
         {
             path.add(node.position);
@@ -594,7 +597,7 @@ public class Utility
         {
             Node u = minHeap.poll();
 
-            if (expansions++ > maxExpansions)
+            if (expansions++ >= maxExpansions)
             {
                 return new ArrayList<>(); // treat as "no path", too many expansions
             }
@@ -613,7 +616,9 @@ public class Utility
                     Double nextLat = unitLength * Math.sin(angleRad) + u.getPosition().getLat();
                     Position nextPosition = new Position(nextLng,nextLat);
                     PositionsRequest path = new  PositionsRequest(u.getPosition(),nextPosition);
-                    if (!nextLng.equals(u.getPosition().getLng()) && !nextLat.equals(u.getPosition().getLat()) && !isPathCrossingRestrictionArea(path,restrictedAreas))
+
+                    boolean coordinatesNotChanged = (nextLng.equals(u.getPosition().getLng()) && nextLat.equals(u.getPosition().getLat()));
+                    if (!coordinatesNotChanged && !isPathCrossingRestrictionArea(path,restrictedAreas))
                     {
                         Node v = new Node(u, nextPosition, u.getGScore() + unitLength, calculateDistance(nextPosition, end));
                         minHeap.add(v);

@@ -145,9 +145,6 @@ public class RestServiceImplementation implements RestService
         Map<String, ArrayList<Availability>> availabilityMap = utility.getAvailabilityMap(servicePointDrones);
 
 
-        Set<LocalDate> dates = utility.getAllDates(queries);
-        if (dates.size() <= 1)
-        {
             for  (Drone drone : drones)
             {
                 id = drone.getId();
@@ -179,7 +176,6 @@ public class RestServiceImplementation implements RestService
                 }
 
             }
-        }
 
 
         return droneIds;
