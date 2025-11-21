@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 @AllArgsConstructor
 @Setter
@@ -12,6 +13,6 @@ import java.util.ArrayList;
 public class Feature
 {
     private String type;
-    private Property properties;
+    private Map<String, Object> properties;
     private Geometry geometry;
 }

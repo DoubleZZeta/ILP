@@ -188,7 +188,6 @@ public class RestServiceImplementation implements RestService
     @Override
     public ReturnedPath calcDeliveryPath(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointsDrones)
     {
-        //TODO optimise the function for getting drone bases
         Set<LocalDate> dates = utility.getAllDates(queries);
         List<LocalDate> sortedDates = dates.stream().sorted().toList();
 
@@ -357,7 +356,7 @@ public class RestServiceImplementation implements RestService
                     lngLat.add(position.getLat());
                     geometry.getCoordinates().add(lngLat);
                 }
-                Feature feature = new Feature("Feature",null,geometry);
+                Feature feature = new Feature("Feature",new HashMap<>(),geometry);
                 geoJson.getFeatures().add(feature);
 
             }
