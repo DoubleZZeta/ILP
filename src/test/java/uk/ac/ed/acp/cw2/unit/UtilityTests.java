@@ -7,8 +7,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 import uk.ac.ed.acp.cw2.data.Position;
+import uk.ac.ed.acp.cw2.data.PositionRegionRequest;
 import uk.ac.ed.acp.cw2.data.PositionsRequest;
 import uk.ac.ed.acp.cw2.data.Region;
 import uk.ac.ed.acp.cw2.utility.Utility;
@@ -32,11 +34,7 @@ public class UtilityTests
     @Mock
     Position vertex;
 
-    @Mock
-    ArrayList<Position> vertices;
-
-    @InjectMocks
-    Region region;
+    PositionRegionRequest positionRegionRequest;
 
     //Can't do mock injection for two parameters with same type, use regular DTO instead
     PositionsRequest positionsRequest;
@@ -46,6 +44,7 @@ public class UtilityTests
     {
         MockitoAnnotations.openMocks(this);
         positionsRequest = new PositionsRequest(position1, position2);
+
     }
 
     @Test
@@ -77,19 +76,29 @@ public class UtilityTests
     @Test
     public void getRegionEdges_should_returnCorrectListOfEdges_whenValidVerticesAreGiven()
     {
-        when(vertices.get(0)).thenReturn(new Position(0.0,0.0));
-        when(vertices.get(1)).thenReturn(new Position(0.1,0.1));
-        when(vertices.get(2)).thenReturn(new Position(0.2,0.2));
-        when(vertices.get(3)).thenReturn(new Position(0.0,0.0));
-        when(vertices.size()).thenReturn(4);
 
+        ArrayList<Position> vertices = new ArrayList<>();
+        vertices.add(new Position(0.0, 0.0));
+        vertices.add(new Position(0.1, 0.1));
+        vertices.add(new Position(0.2, 0.2));
+        vertices.add(new Position(0.0, 0.0));
+
+        Region region = new Region("test-region", vertices);
         ArrayList<PositionsRequest> result = utility.getRegionEdges(region);
 
-        for (int i = 0; i<result.size(); i++ )
-        {
-            assert(Objects.equals(result.get(i).getPosition1(), vertices.get(i%vertices.size())));
-            assert(Objects.equals(result.get(i).getPosition2(), vertices.get((i+1)%vertices.size())));
-        }
+        assert(result.size() == 4);
+
+        assert(vertices.get(0) == result.get(0).getPosition1());
+        assert(vertices.get(1) == result.get(0).getPosition2());
+
+        assert(vertices.get(1) == result.get(1).getPosition1());
+        assert(vertices.get(2) == result.get(1).getPosition2());
+
+        assert(vertices.get(2) == result.get(2).getPosition1());
+        assert(vertices.get(3) == result.get(2).getPosition2());
+
+        assert(vertices.get(3) == result.get(3).getPosition1());
+        assert(vertices.get(0) == result.get(3).getPosition2());
     }
     @Test
     public void isEdgeIntersectWithRay_should_returnTrue_whenVertexIsOnTheLeftOfTheEdgeAndIntersectWithRay()
@@ -360,5 +369,90 @@ public class UtilityTests
         boolean result = utility.isPositionOnEdge(vertex,positionsRequest);
 
         assert(!result);
+    }
+
+    @Test
+    public void isInRegion_should_returnFalse_when_theNumberOfIntersectionWithRayIsEvenAndThePositionIsNotOnRegion()
+    {
+        ArrayList<Position> vertices = new ArrayList<>();
+        vertices.add(new Position(0.0, 0.0));
+        vertices.add(new Position(0.1, 0.0));
+        vertices.add(new Position(0.1, 0.1));
+        vertices.add(new Position(0.0, 0.1));
+        vertices.add(new Position(0.0, 0.0));
+        Region region = new Region("",vertices);
+        PositionRegionRequest positionRegionRequest = new PositionRegionRequest(new Position(-0.05,0.05),region);
+
+        boolean result = utility.isInRegion(positionRegionRequest);
+
+        assert(!result);
+    }
+
+    @Test
+    public void isInRegion_should_returnTrue_when_theNumberOfIntersectionWithRayIsOddAndThePositionIsNotOnRegion()
+    {
+        ArrayList<Position> vertices = new ArrayList<>();
+        vertices.add(new Position(0.0, 0.0));
+        vertices.add(new Position(0.1, 0.0));
+        vertices.add(new Position(0.1, 0.1));
+        vertices.add(new Position(0.0, 0.1));
+        vertices.add(new Position(0.0, 0.0));
+        Region region = new Region("",vertices);
+        PositionRegionRequest positionRegionRequest = new PositionRegionRequest(new Position(0.05,0.05),region);
+
+        boolean result = utility.isInRegion(positionRegionRequest);
+
+        assert(result);
+    }
+
+    @Test
+    public void isInRegion_should_returnTrue_when_thePositionIsOnRegionAndNumberOfIntersectionIsEven()
+    {
+        ArrayList<Position> vertices = new ArrayList<>();
+        vertices.add(new Position(0.0, 0.0));
+        vertices.add(new Position(0.1, 0.0));
+        vertices.add(new Position(0.1, 0.1));
+        vertices.add(new Position(0.0, 0.1));
+        vertices.add(new Position(0.0, 0.0));
+        Region region = new Region("",vertices);
+        PositionRegionRequest positionRegionRequest = new PositionRegionRequest(new Position(0.0,0.05),region);
+
+        boolean result = utility.isInRegion(positionRegionRequest);
+
+        assert(result);
+    }
+
+    @Test
+    public void isInRegion_should_returnTrue_when_thePositionIsOnRegionAndNumberOfIntersectionIsOdd()
+    {
+        ArrayList<Position> vertices = new ArrayList<>();
+        vertices.add(new Position(0.0, 0.0));
+        vertices.add(new Position(0.1, 0.0));
+        vertices.add(new Position(0.1, 0.1));
+        vertices.add(new Position(0.0, 0.1));
+        vertices.add(new Position(0.0, 0.0));
+        Region region = new Region("",vertices);
+        PositionRegionRequest positionRegionRequest = new PositionRegionRequest(new Position(0.1,0.05),region);
+
+        boolean result = utility.isInRegion(positionRegionRequest);
+
+        assert(result);
+    }
+
+    @Test
+    public void isInRegion_should_returnTrue_when_thePositionIsOnOneVertexOfTheRegion()
+    {
+        ArrayList<Position> vertices = new ArrayList<>();
+        vertices.add(new Position(0.0, 0.0));
+        vertices.add(new Position(0.1, 0.0));
+        vertices.add(new Position(0.1, 0.1));
+        vertices.add(new Position(0.0, 0.1));
+        vertices.add(new Position(0.0, 0.0));
+        Region region = new Region("",vertices);
+        PositionRegionRequest positionRegionRequest = new PositionRegionRequest(new Position(0.1,0.1),region);
+
+        boolean result = utility.isInRegion(positionRegionRequest);
+
+        assert(result);
     }
 }

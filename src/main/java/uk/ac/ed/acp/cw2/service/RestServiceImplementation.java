@@ -146,7 +146,6 @@ public class RestServiceImplementation implements RestService
 
 
         Set<LocalDate> dates = utility.getAllDates(queries);
-        // if multiple dates return empty list
         if (dates.size() <= 1)
         {
             for  (Drone drone : drones)
@@ -295,7 +294,10 @@ public class RestServiceImplementation implements RestService
                             double estimatedCurrentFlightCost = currentLandingAndTakeOffCost + estimatedCurrentDroneMoves * droneCapability.getCostPerMove();
                             currentCostPerDelivery = estimatedCurrentFlightCost / estimatedCurrentNumberOfDeliveries;
 
-                            if( (queryRequirements.getMaxCost() == null) || ((estimatedCurrentDroneMoves <= droneCapability.getMaxMoves()) && (currentCostPerDelivery <= queryRequirements.getMaxCost())))
+                            boolean lowerThanMaxMove = (estimatedCurrentDroneMoves <= droneCapability.getMaxMoves());
+                            boolean lowerThanMaxCost = ((queryRequirements.getMaxCost() == null) || (currentCostPerDelivery <= queryRequirements.getMaxCost()));
+
+                            if( lowerThanMaxMove && lowerThanMaxCost )
                             {
 
                                 currentDroneMoves += movesTo;
@@ -340,25 +342,28 @@ public class RestServiceImplementation implements RestService
     @Override
     public GeoJson calcDeliveryPathAsGeoJson(ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints, ArrayList<RestrictedArea> restrictedAreas, ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones)
     {
-        ReturnedPath returnedPath = null;
-        GeoJson returnedGeoJson = new GeoJson("LineString",new ArrayList<>());
-        for(Drone drone : drones)
+        ReturnedPath returnedPath = calcDeliveryPath(queries, servicePoints, restrictedAreas, drones, servicePointDrones);
+        GeoJson geoJson = new GeoJson("FeatureCollection",new ArrayList<>());
+
+        for(DronePath dronePath: returnedPath.getDronePaths())
         {
-            ArrayList<Drone> singleDrone = new ArrayList<>();
-            singleDrone.add(drone);
-            returnedPath = calcDeliveryPath(queries, servicePoints, restrictedAreas, singleDrone, servicePointDrones);
-            if (utility.hasDroneDeliveredAll(returnedPath, queries))
+            for(Deliveries deliveries: dronePath.getDeliveries())
             {
-                break;
+                Geometry geometry = new Geometry("LineString",new ArrayList<>());
+                for (Position position: deliveries.getFlightPath())
+                {
+                    ArrayList<Double> lngLat = new ArrayList<>();
+                    lngLat.add(position.getLng());
+                    lngLat.add(position.getLat());
+                    geometry.getCoordinates().add(lngLat);
+                }
+                Feature feature = new Feature("Feature",null,geometry);
+                geoJson.getFeatures().add(feature);
+
             }
-        }
 
-        if (returnedPath != null)
-        {
-            returnedGeoJson = utility.toGeoJson(returnedPath);
         }
-
-        return returnedGeoJson;
+        return geoJson;
     }
 
 }

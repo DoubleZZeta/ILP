@@ -7,10 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.reactive.function.client.WebClient;
 import uk.ac.ed.acp.cw2.utility.Utility;
-
-import java.net.URL;
 
 /**
  * Configuration class that is used for dependency injection

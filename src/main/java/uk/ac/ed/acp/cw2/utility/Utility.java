@@ -313,10 +313,10 @@ public class Utility
                 double moves = Math.round( distance / unitLength);
                 double cost = capability.getCostInitial() + capability.getCostFinal() + moves * capability.getCostPerMove();
 
-                boolean deliveryExceedsMaxMove = (moves > capability.getMaxMoves());
-                boolean deliveryExceedsMaxCost = (cost > requirements.getMaxCost());
+                boolean deliveryNotExceedsMaxMove = (moves < capability.getMaxMoves());
+                boolean deliveryNotExceedsMaxCost = ((requirements.getMaxCost() == null) || (cost < requirements.getMaxCost()));
 
-                if (deliveryExceedsMaxMove || deliveryExceedsMaxCost)
+                if (!(deliveryNotExceedsMaxMove && deliveryNotExceedsMaxCost))
                 {
                     result = false;
                 }
@@ -584,7 +584,7 @@ public class Utility
     {
         // Set up
         int expansions = 0;
-        int maxExpansions = 1000000;
+        int maxExpansions = 100000000;
         PriorityQueue<Node> minHeap = new PriorityQueue<>();
         Set<String> visited = new HashSet<>();
         minHeap.add(new Node( null, start,0.0,calculateDistance(start,end)));
@@ -627,58 +627,7 @@ public class Utility
         return new ArrayList<>();
     }
 
-    public boolean hasDroneDeliveredAll(ReturnedPath path, ArrayList<MedicineDispatchRequest> queries)
-    {
-        // No valid routes
-        if (path == null || path.getDronePaths() == null || path.getDronePaths().isEmpty())
-        {
-            return false;
-        }
 
-        boolean deliveredAll = true;
-        Set<Integer> deliveredQueryIds = new HashSet<>();
-        for (DronePath dronePath: path.getDronePaths())
-        {
-            for (Deliveries deliveries: dronePath.getDeliveries())
-            {
-                if(deliveries.getDeliveryId() != null && !deliveries.getFlightPath().isEmpty())
-                {
-                    deliveredQueryIds.add(deliveries.getDeliveryId());
-                }
-            }
-        }
-
-        for(MedicineDispatchRequest query: queries)
-        {
-            if (!deliveredQueryIds.contains(query.getId()))
-            {
-                deliveredAll = false;
-                break;
-            }
-        }
-
-        return  deliveredAll;
-    }
-
-    public GeoJson toGeoJson(ReturnedPath path)
-    {
-        GeoJson geoJson = new GeoJson("LineString",new ArrayList<>());
-        for (DronePath dronePath: path.getDronePaths())
-        {
-            for (Deliveries deliveries: dronePath.getDeliveries())
-            {
-                for (Position position: deliveries.getFlightPath())
-                {
-                    ArrayList<Double> lngLat = new ArrayList<>();
-                    lngLat.add(position.getLng());
-                    lngLat.add(position.getLat());
-                    geoJson.getCoordinates().add(lngLat);
-                }
-            }
-        }
-
-        return  geoJson;
-    }
 
 
 

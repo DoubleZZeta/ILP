@@ -9,9 +9,8 @@ import java.util.ArrayList;
 @AllArgsConstructor
 @Setter
 @Getter
-public class GeoJson
+public class Geometry
 {
     private String type;
-    private ArrayList<Feature> features;
-    //private ArrayList<ArrayList<Double>> coordinates;
+    private ArrayList<ArrayList<Double>> coordinates;
 }
