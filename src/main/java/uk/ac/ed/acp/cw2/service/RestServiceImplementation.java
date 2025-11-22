@@ -159,7 +159,6 @@ public class RestServiceImplementation implements RestService
                     time = query.getTime();
                     droneBase = utility.getServicePointPosition(id, servicePointDrones,servicePoints, date, time);
 
-                    System.out.println("droneId before checking:" +  drone.getId());
                     droneIsAvailable = utility.checkDroneIsAvailable(drone,query, availabilityMap);
                     droneMeetsRequirements = utility.checkDroneMeetsRequirements(drone, query, droneBase);
 
@@ -274,7 +273,10 @@ public class RestServiceImplementation implements RestService
                             end = query.getDelivery();
 
                             ArrayList<Position> toDeliver = utility.aStarSearch(start,end,restrictedAreas);
+                            // For hover
+                            toDeliver.add(toDeliver.getLast());
                             int movesTo = toDeliver.size();
+
                             ArrayList<Position> toBase = utility.aStarSearch(end,droneBase,restrictedAreas);
                             int movesBack = toBase.size();
 
@@ -303,8 +305,6 @@ public class RestServiceImplementation implements RestService
 
                                 totalMoves += movesTo;
 
-                                // For hover
-                                toDeliver.add(toDeliver.getLast());
                                 utility.addDeliveriesToRetunedPath(drone.getId(),query.getId(),toDeliver,returnedPath);
                             }
                         }

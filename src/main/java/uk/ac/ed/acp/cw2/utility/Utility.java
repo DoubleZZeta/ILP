@@ -300,27 +300,26 @@ public class Utility
             result = false;
         }
 
-        if(requirements.getMaxCost() != null)
+        // always checking moves
+        if (droneBase == null)
         {
-            if (droneBase == null)
+            result = false;
+        }
+        else
+        {
+            double distance = calculateDistance(query.getDelivery(), droneBase) * 2;
+            double moves = Math.round( distance / unitLength);
+            double cost = capability.getCostInitial() + capability.getCostFinal() + moves * capability.getCostPerMove();
+
+            boolean deliveryNotExceedsMaxMove = (moves <= capability.getMaxMoves());
+            boolean deliveryNotExceedsMaxCost = ((requirements.getMaxCost() == null) || (cost <= requirements.getMaxCost()));
+
+            if (!(deliveryNotExceedsMaxMove && deliveryNotExceedsMaxCost))
             {
                 result = false;
             }
-            else
-            {
-                double distance = calculateDistance(query.getDelivery(), droneBase) * 2;
-                double moves = Math.round( distance / unitLength);
-                double cost = capability.getCostInitial() + capability.getCostFinal() + moves * capability.getCostPerMove();
-
-                boolean deliveryNotExceedsMaxMove = (moves <= capability.getMaxMoves());
-                boolean deliveryNotExceedsMaxCost = ((requirements.getMaxCost() == null) || (cost <= requirements.getMaxCost()));
-
-                if (!(deliveryNotExceedsMaxMove && deliveryNotExceedsMaxCost))
-                {
-                    result = false;
-                }
-            }
         }
+
 
 
 
@@ -564,13 +563,13 @@ public class Utility
 
     public String getKey(Position position)
     {
-        long lngRounded = Math.round(position.getLng() / unitLength);
-        long latRounded = Math.round(position.getLat() / unitLength);
+        long lngRounded = Math.round(position.getLng() * 1e4);
+        long latRounded = Math.round(position.getLat() * 1e4);
 
         return lngRounded + "," + latRounded;
     }
 
-    public ArrayList<Position> calculatePath(Node node, Position end)
+    public ArrayList<Position> calculatePath(Node node)
     {
         ArrayList<Position> path = new ArrayList<>();
         while(node.parent != null)
@@ -604,7 +603,7 @@ public class Utility
 
             if (calculateDistance(u.getPosition(), end) < unitLength)
             {
-                return calculatePath(u,end);
+                return calculatePath(u);
             }
             if (!visited.contains(getKey(u.getPosition())))
             {
@@ -616,11 +615,10 @@ public class Utility
                     Double nextLat = unitLength * Math.sin(angleRad) + u.getPosition().getLat();
                     Position nextPosition = new Position(nextLng,nextLat);
                     PositionsRequest path = new  PositionsRequest(u.getPosition(),nextPosition);
+                    Node v = new Node(u, nextPosition, u.getGScore() + unitLength, calculateDistance(nextPosition, end));
 
-                    boolean coordinatesNotChanged = (nextLng.equals(u.getPosition().getLng()) && nextLat.equals(u.getPosition().getLat()));
-                    if (!coordinatesNotChanged && !isPathCrossingRestrictionArea(path,restrictedAreas))
+                    if (!visited.contains(getKey(v.getPosition())) && !isPathCrossingRestrictionArea(path,restrictedAreas))
                     {
-                        Node v = new Node(u, nextPosition, u.getGScore() + unitLength, calculateDistance(nextPosition, end));
                         minHeap.add(v);
                     }
                 }
