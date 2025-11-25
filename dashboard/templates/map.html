@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Map View — Delivery Points & Suggested Service Points</h1>
+<p class="text-muted">Interactive map showing recorded deliveries, active service points derived from logs, and suggested new service points from k-means.</p>
+
+<div class="row mt-3">
+    <div class="col-md-3">
+        <div class="card p-3">
+            <label for="k-input">K (clusters / suggested service points)</label>
+            <input type="number" id="k-input" class="form-control" min="1" max="20" value="3">
+            <button id="refresh-map" class="btn btn-primary mt-2 w-100">Refresh Map</button>
+            
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div id="map" style="height: 700px;" class="plot-container"></div>
+    </div>
+</div>
+
+<!-- Leaflet CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+async function fetchMapData(k=3) {
+    const resp = await fetch(`/api/map_data?k=${k}`);
+    return resp.json();
+}
+
+let map;
+let deliveriesLayer;
+let servicePointsLayer;
+let centroidsLayer;
+let noFlyLayer;
+// Keep an index of service point markers by name so refreshes update in-place
+let servicePointIndex = {};
+
+function initMap() {
+    map = L.map('map').setView([51.5074, -0.1278], 10); // default to London coords; will fit to data
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    deliveriesLayer = L.layerGroup().addTo(map);
+    servicePointsLayer = L.layerGroup().addTo(map);
+    centroidsLayer = L.layerGroup().addTo(map);
+    
+}
+
+function clearLayers() {
+    // Clear deliveries and suggested centroids on refresh. Keep service points
+    // in-place so their markers/popup state are preserved across refreshes.
+    deliveriesLayer.clearLayers();
+    centroidsLayer.clearLayers();
+}
+
+function fitToBounds(allPoints) {
+    if (allPoints.length === 0) return;
+    const bounds = L.latLngBounds(allPoints.map(p => [p.lat, p.lng]));
+    map.fitBounds(bounds.pad(0.2));
+}
+
+async function renderMap(k) {
+    const data = await fetchMapData(k);
+    clearLayers();
+
+    const allPoints = [];
+
+    // deliveries
+    data.deliveries.forEach(d => {
+        const m = L.circleMarker([d.lat, d.lng], {radius:4, color: 'blue', fillOpacity:0.7}).bindPopup(`<b>Service:</b> ${d.servicePointName}<br><b>Drone:</b> ${d.droneId}`);
+        deliveriesLayer.addLayer(m);
+        allPoints.push({lat: d.lat, lng: d.lng});
+    });
+
+    // service points (active) - update in-place using servicePointIndex
+    const seenServicePoints = new Set();
+    data.service_points.forEach(sp => {
+        seenServicePoints.add(sp.name);
+        if (servicePointIndex[sp.name]) {
+            // update existing marker position if changed
+            const existing = servicePointIndex[sp.name];
+            existing.setLatLng([sp.lat, sp.lng]);
+            existing.bindPopup(`<b>Active Service Point:</b> ${sp.name}`);
+        } else {
+            const icon = L.icon({
+                iconUrl: 'https://cdn.jsdelivr.net/gh/pointhi/leaflet-color-markers@master/img/marker-icon-2x-green.png',
+                iconSize: [25,41],
+                iconAnchor: [12,41],
+            });
+            const m = L.marker([sp.lat, sp.lng], {icon: icon}).bindPopup(`<b>Active Service Point:</b> ${sp.name}`);
+            servicePointsLayer.addLayer(m);
+            servicePointIndex[sp.name] = m;
+        }
+        allPoints.push({lat: sp.lat, lng: sp.lng});
+    });
+
+    // Remove any service point markers that are no longer present in the latest data
+    Object.keys(servicePointIndex).forEach(name => {
+        if (!seenServicePoints.has(name)) {
+            try {
+                servicePointsLayer.removeLayer(servicePointIndex[name]);
+            } catch (e) {}
+            delete servicePointIndex[name];
+        }
+    });
+
+    // centroids (suggested new service points)
+    data.centroids.forEach((c, idx) => {
+        const icon = L.icon({
+            iconUrl: 'https://cdn.jsdelivr.net/gh/pointhi/leaflet-color-markers@master/img/marker-icon-2x-red.png',
+            iconSize: [25,41],
+            iconAnchor: [12,41],
+        });
+        const m = L.marker([c.lat, c.lng], {icon: icon}).bindPopup(`<b>Suggested Service Point ${idx+1}</b>`);
+        centroidsLayer.addLayer(m);
+        allPoints.push({lat: c.lat, lng: c.lng});
+    });
+
+    
+
+    fitToBounds(allPoints);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    initMap();
+    const kInput = document.getElementById('k-input');
+    document.getElementById('refresh-map').addEventListener('click', () => renderMap(parseInt(kInput.value)||3));
+    renderMap(parseInt(kInput.value)||3);
+});
+</script>
+
+{% endblock %}

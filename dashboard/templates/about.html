@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>About This Dashboard</h1>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <h3>Overview</h3>
+        <p>
+            This dashboard provides interactive visualizations and analysis of drone delivery logs. 
+            It leverages Python data analysis and machine learning techniques to extract insights from delivery data.
+        </p>
+
+        <h3 class="mt-4">Features</h3>
+        <ul>
+            <li><strong>KPIs:</strong> Total deliveries, active drones, service points, and average distance metrics.</li>
+            <li><strong>Data Analysis:</strong> Multiple visualizations including elbow plots, service point breakdowns, drone stacking, and temporal patterns.</li>
+            <li><strong>K-means Clustering:</strong> (Removed) Previously used to identify service zones; dashboard now shows suggested service points on the map directly.</li>
+            <li><strong>Raw Data:</strong> Full access to the delivery log data in tabular format.</li>
+        </ul>
+
+        <h3 class="mt-4">Technology Stack</h3>
+        <ul>
+            <li><strong>Backend:</strong> Flask (Python web framework)</li>
+            <li><strong>Data Processing:</strong> Pandas, NumPy</li>
+            <li><strong>Visualization:</strong> Simple matplotlib PNGs (rendered server-side) to keep site easy to reproduce and inspect</li>
+            <li><strong>Frontend:</strong> Bootstrap 5, Jinja2 templating</li>
+        </ul>
+
+        <h3 class="mt-4">How to Use</h3>
+        <ol>
+            <li><strong>Home:</strong> View key performance indicators at a glance.</li>
+            <li><strong>Analysis:</strong> Explore multi-dimensional views of the delivery data.</li>
+            <li><strong>Clustering:</strong> (Removed) Clustering controls were removed to keep the project simple and reproducible. Suggested service points are shown on the map.</li>
+            <li><strong>Data:</strong> Download or review the raw delivery logs.</li>
+        </ol>
+
+        <h3 class="mt-4">Data Source</h3>
+        <p>
+            This dashboard reads delivery data from <code>delivery_logs.csv</code> in the project root. 
+            The analysis functions are located in <code>analysis/analysis.py</code>.
+            "Service points" shown are the active/used service points derived from delivery logs. The map view shows delivery locations and suggested new service points.
+        </p>
+    </div>
+</div>
+{% endblock %}

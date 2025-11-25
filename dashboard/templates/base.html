@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drone Delivery Operations Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">🚁 Drone Delivery Operations Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/analysis">Analysis</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="/map">Map</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/data">Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about">About</a>
+                    </li>
+                    <li class="nav-item d-flex align-items-center">
+                        <button id="nav-refresh-map" class="btn btn-sm btn-outline-light me-2" title="Refresh map">Refresh Map</button>
+                    </li>
+                    <li class="nav-item d-flex align-items-center">
+                        <button id="nav-refresh-graphs" class="btn btn-sm btn-outline-light" title="Refresh graphs">Refresh Graphs</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="bg-light text-center py-4 mt-5">
+        <p class="text-muted">Drone Deliveries Data Analysis Dashboard | Built with Flask</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navbar refresh buttons: if the current page defines `renderMap` or `refreshGraphs`, call them.
+        document.getElementById('nav-refresh-map').addEventListener('click', function(){
+            try {
+                if (typeof window.renderMap === 'function') {
+                    // Use the current k-input value if present
+                    const kInput = document.getElementById('k-input');
+                    const k = kInput ? parseInt(kInput.value) || 3 : 3;
+                    window.renderMap(k);
+                } else {
+                    // If not on map page, navigate to map
+                    window.location.href = '/map';
+                }
+            } catch (e) { console.warn(e); }
+        });
+
+        document.getElementById('nav-refresh-graphs').addEventListener('click', function(){
+            try {
+                // analysis page defines refreshAnalysisImages
+                if (typeof window.refreshAnalysisImages === 'function') {
+                    window.refreshAnalysisImages();
+                } else {
+                    // navigate to analysis page so user can refresh there
+                    window.location.href = '/analysis';
+                }
+            } catch (e) { console.warn(e); }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <h1>Dashboard Overview</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card text-center bg-red1 text-white">
+            <div class="card-body">
+                <h5 class="card-title">Total Deliveries</h5>
+                <p class="card-text" style="font-size: 2.5rem;">{{ kpis.total_deliveries }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center bg-red2 text-white">
+            <div class="card-body">
+                <h5 class="card-title">Active Drones</h5>
+                <p class="card-text" style="font-size: 2.5rem;">{{ kpis.unique_drones }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center bg-blue1 text-white">
+            <div class="card-body">
+                <h5 class="card-title">Active Service Points</h5>
+                <p class="card-text" style="font-size: 2.5rem;">{{ kpis.unique_service_points }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center bg-blue2 text-dark">
+            <div class="card-body">
+                <h5 class="card-title">Avg Distance (units)</h5>
+                <p class="card-text" style="font-size: 2.5rem;">{{ kpis.avg_distance }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <h3>Quick Links</h3>
+        <div class="quick-links d-flex flex-wrap align-items-center">
+            <a href="/" class="btn btn-ql btn-red-deep">Home</a>
+            <a href="/analysis" class="btn btn-ql btn-red">Analysis</a>
+            <a href="/map" class="btn btn-ql btn-red-light">Map</a>
+            <a href="/data" class="btn btn-ql btn-blue">Data</a>
+            <a href="/about" class="btn btn-ql btn-blue-dark">About</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

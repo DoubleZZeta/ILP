@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Data Analysis</h1>
+<p class="text-muted">Interactive visualizations of delivery data</p>
+
+<div class="mb-3">
+    <button id="refresh-graphs" class="btn btn-danger btn-sm">Refresh Graphs</button>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+        <div class="plot-container">
+            <img src="/analysis/plot/elbow.png" alt="Elbow plot" class="img-fluid shadow-sm rounded" />
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="plot-container">
+            <img src="/analysis/plot/service_point.png" alt="Service point plot" class="img-fluid shadow-sm rounded" />
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+        <div class="plot-container">
+            <img src="/analysis/plot/drone_stacked.png" alt="Drone stacked" class="img-fluid shadow-sm rounded" />
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="plot-container">
+            <img src="/analysis/plot/day_week.png" alt="Day of week" class="img-fluid shadow-sm rounded" />
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-6 mb-4">
+        <div class="plot-container">
+            <img src="/analysis/plot/time_of_day.png" alt="Time of day" class="img-fluid shadow-sm rounded" />
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="plot-container">
+            <img src="/analysis/plot/scatter.png" alt="Scatter" class="img-fluid shadow-sm rounded" />
+        </div>
+    </div>
+</div>
+<!-- Images are served from /analysis/plot/<name>.png and generated on-demand -->
+<script>
+    // Add a function that reloads all analysis images by appending a timestamp query param.
+    function refreshAnalysisImages() {
+        const imgs = document.querySelectorAll('img[src^="/analysis/plot/"]');
+        imgs.forEach(img => {
+            const src = img.getAttribute('src').split('?')[0];
+            img.src = src + '?t=' + Date.now();
+        });
+    }
+
+    // expose globally so navbar button can call it
+    window.refreshAnalysisImages = refreshAnalysisImages;
+
+    document.getElementById('refresh-graphs').addEventListener('click', () => refreshAnalysisImages());
+</script>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Raw Data</h1>
+<p class="text-muted">Complete delivery log data</p>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div style="overflow-x: auto; max-height: 600px; overflow-y: auto;">
+            {{ data | safe }}
+        </div>
+    </div>
+</div>
+{% endblock %}
