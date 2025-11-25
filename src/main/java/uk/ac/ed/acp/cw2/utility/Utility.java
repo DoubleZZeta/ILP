@@ -7,7 +7,13 @@ import lombok.Setter;
 import org.springframework.stereotype.Component;
 import uk.ac.ed.acp.cw2.data.*;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -563,8 +569,8 @@ public class Utility
 
     public String getKey(Position position)
     {
-        long lngRounded = Math.round(position.getLng() * 1e4);
-        long latRounded = Math.round(position.getLat() * 1e4);
+        long lngRounded = Math.round(position.getLng() / unitLength);
+        long latRounded = Math.round(position.getLat() / unitLength);
 
         return lngRounded + "," + latRounded;
     }
@@ -578,7 +584,7 @@ public class Utility
             node = node.parent;
         }
         path.add(node.position);
-        Collections.reverse(path); // Reverses the path from [end...start] to [start...end]
+        Collections.reverse(path);
         return path;
     }
 
@@ -623,16 +629,233 @@ public class Utility
                     }
                 }
             }
-
-
         }
-
         return new ArrayList<>();
     }
 
+    private String safe(String s) {
+        if (s == null) return "";
+        // crude comma escape for coursework; good enough
+        return s.replace(",", " ");
+    }
+
+    private String safeInteger(Integer i) {
+        return (i == null) ? "" : i.toString();
+    }
+
+    private double safeDouble(Double d) {
+        return (d == null) ? 0.0 : d;
+    }
+
+    private String safeBool(Boolean b) {
+        return (b == null) ? "" : b.toString();
+    }
+
+    private String safeDate(java.time.LocalDate d) {
+        return (d == null) ? "" : d.toString();
+    }
+
+    private String safeTime(java.time.LocalTime t) {
+        return (t == null) ? "" : t.toString();
+    }
+
+    public void log(LogEntry logEntry)
+    {
+        Path logFile = Paths.get("delivery_logs.csv").toAbsolutePath();
+        try
+        {
+            if (!Files.exists(logFile))
+            {
+                Files.writeString(
+                        logFile,
+                        "deliveryId," +
+                                "droneId," +
+                                "servicePointLng," +
+                                "servicePointLat," +
+                                "servicePointId," +
+                                "servicePointName," +
+                                "deliveryPointLng," +
+                                "deliveryPointLat," +
+                                "deliveryDate," +
+                                "deliveryTime," +
+                                "actualCost," +
+                                "requiredCapacity," +
+                                "coolingRequired," +
+                                "heatingRequired" +
+                                "\n");
+            }
+        }
+        catch (IOException e)
+        {
+            System.err.println("Error while trying to log entry: " + e.getMessage());
+        }
+
+        String line = String.format(
+                "%s,%s,%.7f,%.7f,%s,%s,%.7f,%.7f,%s,%s,%.4f,%.2f,%s,%s%n",
+                safeInteger(logEntry.getDeliveryId()),
+                safe(logEntry.getDroneId()),
+                safeDouble(logEntry.getServicePointLng()),
+                safeDouble(logEntry.getServicePointLat()),
+                safeInteger(logEntry.getServicePointId()),
+                safe(logEntry.getServicePointName()),
+                safeDouble(logEntry.getDeliveryPointLng()),
+                safeDouble(logEntry.getDeliveryPointLat()),
+                safeDate(logEntry.getDeliveryDate()),
+                safeTime(logEntry.getDeliveryTime()),
+                safeDouble(logEntry.getActualCost()),
+                safeDouble(logEntry.getRequiredCapacity()),
+                safeBool(logEntry.getCoolingRequired()),
+                safeBool(logEntry.getHeatingRequired())
+        );
+
+        try (BufferedWriter w = Files.newBufferedWriter(logFile, StandardOpenOption.APPEND))
+        {
+            w.write(line);
+        }
+        catch (IOException e)
+        {
+            System.err.println("Error while trying to log entry: " + e.getMessage());
+        }
+    }
+
+    public ServicePoint getServicePoint(Position servicePointPosition, ArrayList<ServicePoint> servicePoints)
+    {
+        if (servicePointPosition == null)
+        {
+            return null;
+        }
+        ServicePoint targetServicePoint = null;
+        for (ServicePoint servicePoint: servicePoints)
+        {
+            Position currentPosition = servicePoint.getLocation();
+            if (Objects.equals(servicePointPosition.getLat(), currentPosition.getLat()) && Objects.equals(servicePointPosition.getLng(), currentPosition.getLng()))
+            {
+                targetServicePoint = servicePoint;
+                break;
+            }
+        }
+        return targetServicePoint;
+    }
+
+    public MedicineDispatchRequest getMedicineDispatchRequestById(Integer id, ArrayList<MedicineDispatchRequest> queries) {
+        if (id == null || queries == null)
+        {
+            return null;
+        }
+
+        for (MedicineDispatchRequest query : queries)
+        {
+            if (query != null && id.equals(query.getId()))
+            {
+                return query;
+            }
+        }
+        return null;
+    }
 
 
+    public void logReturnedPath(ReturnedPath returnedPath, ArrayList<MedicineDispatchRequest> queries, ArrayList<ServicePoint> servicePoints)
+    {
+        if (returnedPath == null || returnedPath.getDronePaths() == null)
+        {
+            return;
+        }
 
+        for (DronePath dronePath : returnedPath.getDronePaths()) {
+            if (dronePath == null || dronePath.getDeliveries() == null || dronePath.getDeliveries().isEmpty())
+            {
+                continue;
+            }
+
+            String  droneId = dronePath.getDroneId();
+            if (droneId == null)
+            {
+                continue;
+            }
+
+            ArrayList<Deliveries> deliveriesList = dronePath.getDeliveries();
+
+            // Filter out the “return to base” entry (deliveryId == null)
+            ArrayList<Deliveries> realDeliveries = new ArrayList<>();
+            for (Deliveries d : deliveriesList)
+            {
+                if (d != null && d.getDeliveryId() != null)
+                {
+                    realDeliveries.add(d);
+                }
+            }
+
+            if (realDeliveries.isEmpty())
+            {
+                continue; // nothing to log for this drone
+            }
+
+            // base is the first point of the flight path of the first real delivery
+            Deliveries firstDel = realDeliveries.getFirst();
+            if (firstDel.getFlightPath() == null || firstDel.getFlightPath().isEmpty())
+            {
+                continue;
+            }
+
+            Position servicePointPosition = firstDel.getFlightPath().getFirst();
+
+            ServicePoint servicePoint = getServicePoint(servicePointPosition, servicePoints);
+            if (servicePoint == null || servicePoint.getLocation() == null)
+            {
+                continue;
+            }
+
+            int numberOfDeliveries = realDeliveries.size();
+            if (numberOfDeliveries <= 0)
+            {
+                continue;
+            }
+            double costPerDelivery = returnedPath.getTotalCost() / numberOfDeliveries;
+
+            for (Deliveries deliveries : realDeliveries) {
+
+                Integer id = deliveries.getDeliveryId();
+                if (id == null)
+                {
+                    continue;
+                }
+
+                MedicineDispatchRequest query = getMedicineDispatchRequestById(id, queries);
+                if (query == null || query.getDelivery() == null)
+                {
+                    continue;
+                }
+
+                Requirements req = query.getRequirements();
+
+                LogEntry logEntry = new LogEntry();
+                logEntry.setDeliveryId(id);
+
+                logEntry.setDroneId(droneId);
+
+                logEntry.setServicePointLng(servicePoint.getLocation().getLng());
+                logEntry.setServicePointLat(servicePoint.getLocation().getLat());
+                logEntry.setServicePointId(servicePoint.getId());
+                logEntry.setServicePointName(servicePoint.getName());
+
+                logEntry.setDeliveryPointLng(query.getDelivery().getLng());
+                logEntry.setDeliveryPointLat(query.getDelivery().getLat());
+                logEntry.setDeliveryDate(query.getDate());
+                logEntry.setDeliveryTime(query.getTime());
+
+                logEntry.setActualCost(costPerDelivery);
+
+                if (req != null)
+                {
+                    logEntry.setRequiredCapacity(req.getCapacity());
+                    logEntry.setCoolingRequired(req.getCooling());
+                    logEntry.setHeatingRequired(req.getHeating());
+                }
+
+                log(logEntry);
+            }
+        }
+    }
 
 
 }

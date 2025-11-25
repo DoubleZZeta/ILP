@@ -229,7 +229,7 @@ public class RestServiceImplementation implements RestService
                             continue;
                         }
 
-                        // If we haven't fixed a base for this flight yet, lock it in
+                        // If haven't fixed a base for this flight, lock it in
                         if (currentDroneBase == null)
                         {
                             currentDroneBase = droneBase;
@@ -296,7 +296,6 @@ public class RestServiceImplementation implements RestService
 
                             if( lowerThanMaxMove && lowerThanMaxCost )
                             {
-
                                 currentDroneMoves += movesTo;
                                 currentNumberOfDeliveries += 1;
                                 currentDroneCapacity -=  queryRequirements.getCapacity();
@@ -310,7 +309,7 @@ public class RestServiceImplementation implements RestService
                         }
 
                     }
-                    // close flight if  did anything
+                    // close flight if did anything
                     if (!currentDronePath.isEmpty())
                     {
                         progress = true;
@@ -331,6 +330,7 @@ public class RestServiceImplementation implements RestService
         }
         returnedPath.setTotalCost(totalCost);
         returnedPath.setTotalMoves(totalMoves);
+        utility.logReturnedPath(returnedPath,queries,servicePoints);
         return returnedPath;
     }
 

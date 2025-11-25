@@ -15,25 +15,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class GlobalExceptionHandler
 {
 //    // Use this part for submission
-//    @ExceptionHandler(Exception.class)
-//    @ResponseStatus(HttpStatus.BAD_REQUEST)
-//    public void handleValidationException(Exception ex)
-//    {
-//        //No return value
-//    }
-
-    // Use this part of code for debug
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public void handleValidationException(MethodArgumentNotValidException ignoredEx)
-    {
-
-    }
-
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public void handleAllOtherExceptions(Exception ex)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public void handleValidationException(Exception ex)
     {
-        System.err.println("Unexpected error: " + ex.getMessage());
+        //No return value
     }
 }
