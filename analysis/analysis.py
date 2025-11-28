@@ -21,6 +21,11 @@ def k_means(df,k=3):
     position_df = df[['deliveryPointLng','deliveryPointLat']].copy(deep = True)
     
     # Handle case where k is larger than dataset size
+    # If there are no points, return empty results
+    if len(position_df) == 0:
+        empty_centroids = pd.DataFrame(columns=['deliveryPointLng', 'deliveryPointLat'])
+        return empty_centroids, []
+
     k = min(k, len(position_df))
     if k < 1:
         k = 1
@@ -192,6 +197,81 @@ def load_deliver_df():
     base_dir = Path(__file__).resolve().parents[1]
     deliver_log_filepath = base_dir / 'delivery_logs.csv'
     return pd.read_csv(str(deliver_log_filepath))
+
+def get_kpis(df=None):
+    """Calculate KPI metrics from delivery data."""
+    if df is None:
+        df = load_deliver_df()
+    
+    total_deliveries = len(df)
+    unique_drones = df['droneId'].nunique() if 'droneId' in df.columns else 0
+    unique_service_points = df['servicePointName'].nunique() if 'servicePointName' in df.columns else 0
+
+    if len(df) > 1 and 'deliveryPointLng' in df.columns and 'deliveryPointLat' in df.columns:
+        distances = []
+        for i in range(len(df) - 1):
+            x1 = df.iloc[i]['deliveryPointLng']
+            y1 = df.iloc[i]['deliveryPointLat']
+            x2 = df.iloc[i + 1]['deliveryPointLng']
+            y2 = df.iloc[i + 1]['deliveryPointLat']
+            distances.append(calc_distance(x1, y1, x2, y2))
+        avg_distance = sum(distances) / len(distances) if distances else 0
+    else:
+        avg_distance = 0
+
+    return {
+        'total_deliveries': total_deliveries,
+        'unique_drones': unique_drones,
+        'unique_service_points': unique_service_points,
+        'avg_distance': round(avg_distance, 2),
+    }
+
+
+def plot_scatter(df):
+    """Generate a scatter plot of delivery locations."""
+    fig, ax = plt.subplots(figsize=(8, 5))
+    if 'deliveryPointLng' in df.columns and 'deliveryPointLat' in df.columns:
+        ax.scatter(df['deliveryPointLng'], df['deliveryPointLat'], s=10, c='blue', alpha=0.6)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        ax.set_title('Delivery Locations')
+    else:
+        ax.text(0.5, 0.5, 'No coordinate columns', ha='center')
+    fig.tight_layout()
+    return fig
+
+
+def get_service_points(df):
+    """Extract service points with canonical coordinates.
+    
+    Prefers explicit servicePointLng/Lat if present; otherwise falls back
+    to mean of delivery coordinates.
+    
+    Returns:
+        list of dict: [{'name': str, 'lng': float, 'lat': float}, ...]
+    """
+    service_points = []
+    if 'servicePointName' not in df.columns:
+        return service_points
+    
+    grp = df.groupby('servicePointName')
+    for name, g in grp:
+        try:
+            if ('servicePointLng' in df.columns and 'servicePointLat' in df.columns 
+                and g['servicePointLng'].notna().any() and g['servicePointLat'].notna().any()):
+                # Use first non-null canonical coordinates
+                lng = float(g['servicePointLng'].dropna().iloc[0])
+                lat = float(g['servicePointLat'].dropna().iloc[0])
+            else:
+                # Fallback to mean of delivery points
+                lng = float(g['deliveryPointLng'].mean())
+                lat = float(g['deliveryPointLat'].mean())
+            service_points.append({'name': name, 'lng': lng, 'lat': lat})
+        except Exception:
+            continue
+    
+    return service_points
+
 
 def data_summary(df=None):
     """Return a small summary for the given dataframe or the current CSV if None."""
