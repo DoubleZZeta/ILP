@@ -8,5 +8,8 @@ numpy
 matplotlib
 seaborn
 
+# Testing
+pytest
+
 # Optional: Streamlit (if you prefer the Streamlit dashboard instead)
 # streamlit

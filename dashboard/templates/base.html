@@ -57,7 +57,10 @@
         document.getElementById('nav-refresh-map').addEventListener('click', function(){
             try {
                 if (typeof window.renderMap === 'function') {
-                    // Use the current k-input value if present
+                    // Ensure map is initialized before rendering
+                    if (typeof window.initMap === 'function' && typeof window.map === 'undefined') {
+                        window.initMap();
+                    }
                     const kInput = document.getElementById('k-input');
                     const k = kInput ? parseInt(kInput.value) || 3 : 3;
                     window.renderMap(k);
@@ -65,7 +68,7 @@
                     // If not on map page, navigate to map
                     window.location.href = '/map';
                 }
-            } catch (e) { console.warn(e); }
+            } catch (e) { console.warn('Refresh Map failed:', e); }
         });
 
         document.getElementById('nav-refresh-graphs').addEventListener('click', function(){
@@ -77,7 +80,7 @@
                     // navigate to analysis page so user can refresh there
                     window.location.href = '/analysis';
                 }
-            } catch (e) { console.warn(e); }
+            } catch (e) { console.warn('Refresh Graphs failed:', e); }
         });
     </script>
 </body>
