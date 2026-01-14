@@ -1,9 +1,8 @@
-package uk.ac.ed.acp.cw2.unit;
+package uk.ac.ed.acp.cw2.unitCW1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -16,7 +15,7 @@ import uk.ac.ed.acp.cw2.data.Region;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
 import java.util.ArrayList;
-import java.util.Objects;
+
 /**
  * Test class that conduct unit test for the Utility class.
  * Mocks some of the DTOs to ensure accurate results.

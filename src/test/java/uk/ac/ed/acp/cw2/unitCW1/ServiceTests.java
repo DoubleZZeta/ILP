@@ -1,4 +1,4 @@
-package uk.ac.ed.acp.cw2.unit;
+package uk.ac.ed.acp.cw2.unitCW1;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,7 +9,6 @@ import uk.ac.ed.acp.cw2.service.RestService;
 import uk.ac.ed.acp.cw2.service.RestServiceImplementation;
 import uk.ac.ed.acp.cw2.utility.Utility;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 import static org.mockito.Mockito.when;

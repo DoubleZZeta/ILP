@@ -1,4 +1,4 @@
-package uk.ac.ed.acp.cw2.integration;
+package uk.ac.ed.acp.cw2.integrationCW1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test class that conduct integration test for each end point.
  * The mockMVC is used to create a mock running environment.
  */
-@SpringBootTest()
+@SpringBootTest
 @AutoConfigureMockMvc
 public class ControllerTests
 {
@@ -67,14 +67,6 @@ public class ControllerTests
     @Test
     public void distanceTo_should_return200_whenMoreDataIsGiven() throws Exception
     {
-        //language=JSON
-        String json = """
-                {
-                        "hello": 123,
-                        "Goodbye": 456
-                }
-                """;
-
         String requestBody = "{" +
                                 "\"position1\": {" +
                                     "\"lng\": -3.192473," +

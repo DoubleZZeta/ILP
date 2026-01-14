@@ -84,7 +84,7 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public Drone droneDetails (ArrayList<Drone> drones, String droneId)
+    public Drone droneDetails(ArrayList<Drone> drones, String droneId)
     {
         Drone droneWithId = null;
         for(Drone drone : drones)
@@ -99,7 +99,7 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public  ArrayList<String> query (ArrayList<Drone> drones, ArrayList<QueryRequest> queries)
+    public  ArrayList<String> query(ArrayList<Drone> drones, ArrayList<QueryRequest> queries)
     {
         String attribute;
         String value;
@@ -134,7 +134,7 @@ public class RestServiceImplementation implements RestService
     }
 
     @Override
-    public ArrayList<String> queryAvailableDrones (ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones, ArrayList<ServicePoint> servicePoints, ArrayList<MedicineDispatchRequest> queries)
+    public ArrayList<String> queryAvailableDrones(ArrayList<Drone> drones, ArrayList<ServicePointDrones> servicePointDrones, ArrayList<ServicePoint> servicePoints, ArrayList<MedicineDispatchRequest> queries)
     {
         String id;
         LocalDate date;
@@ -241,12 +241,10 @@ public class RestServiceImplementation implements RestService
                             continue;
                         }
 
+                        assert(currentDroneBase!=null); //assertion for R3, but already enforced by the code itself
 
-                        boolean canDeliver = true;
-                        if(currentDroneCapacity < queryRequirements.getCapacity())
-                        {
-                            canDeliver = false;
-                        }
+
+                        boolean canDeliver = !(currentDroneCapacity < queryRequirements.getCapacity());
 
                         Boolean reqCooling = queryRequirements.getCooling();
                         if (reqCooling != null && reqCooling && !currentDroneCooling)
@@ -273,18 +271,18 @@ public class RestServiceImplementation implements RestService
                             end = query.getDelivery();
 
                             ArrayList<Position> toDeliver = utility.aStarSearch(start,end,restrictedAreas);
-                            // For hover
-                            toDeliver.add(toDeliver.getLast());
-                            int movesTo = toDeliver.size();
-
                             ArrayList<Position> toBase = utility.aStarSearch(end,droneBase,restrictedAreas);
-                            int movesBack = toBase.size();
 
                             if (toDeliver.isEmpty() || toBase.isEmpty())
                             {
                                 // no valid path, treat as cannot deliver this query
                                 continue;
                             }
+
+                            // For hover
+                            toDeliver.add(toDeliver.getLast());
+                            int movesTo = toDeliver.size()-1;
+                            int movesBack = toBase.size()-1;
 
                             int estimatedCurrentDroneMoves = currentDroneMoves + (movesTo + movesBack);
                             int estimatedCurrentNumberOfDeliveries = currentNumberOfDeliveries + 1;
@@ -316,10 +314,13 @@ public class RestServiceImplementation implements RestService
                         Position last = currentDronePath.getLast();
                         ArrayList<Position> back = utility.aStarSearch(last, currentDroneBase, restrictedAreas);
                         utility.addDeliveriesToRetunedPath(drone.getId(),null,back,returnedPath);
-                        currentDroneMoves += back.size();
-                        totalMoves += back.size();
+                        currentDroneMoves += back.size() - 1;
+                        totalMoves += back.size() - 1;
                         totalCost += currentLandingAndTakeOffCost + currentDroneMoves * droneCapability.getCostPerMove();
                         queryByDate.removeAll(delivered);
+
+                        assert(droneCapability.getMaxMoves() >= currentDroneMoves); // Assertion for LO1
+
                     }
 
                 }
@@ -331,6 +332,7 @@ public class RestServiceImplementation implements RestService
         returnedPath.setTotalCost(totalCost);
         returnedPath.setTotalMoves(totalMoves);
         utility.logReturnedPath(returnedPath,queries,servicePoints);
+
         return returnedPath;
     }
 
