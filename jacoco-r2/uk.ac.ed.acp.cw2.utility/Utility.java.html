@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Utility.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">IlpTutorial1</a> &gt; <a href="index.source.html" class="el_package">uk.ac.ed.acp.cw2.utility</a> &gt; <span class="el_source">Utility.java</span></div><h1>Utility.java</h1><pre class="source lang-java linenums">package uk.ac.ed.acp.cw2.utility;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.stereotype.Component;
+import uk.ac.ed.acp.cw2.data.*;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.math.RoundingMode;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.*;
+
+/**
+ * Utility class contains helper functions.
+ * Helper functions are being called by the Service Implementation class,
+ * which makes the logic in the service implementation class easier.
+ */
+@Component
+public class Utility
+{
+    private static final double unitLength = 0.00015;
+    private static final double error = 1e-9;
+    private final ObjectMapper objectMapper;
+
+    public Utility(ObjectMapper objectMapper)
+<span class="fc" id="L35">    {</span>
+<span class="fc" id="L36">        this.objectMapper = objectMapper;</span>
+<span class="fc" id="L37">    }</span>
+
+    @Setter
+    @Getter
+    public static class Node implements Comparable&lt;Node&gt;
+    {
+        private Node parent;
+        private Position position;
+        private Double gScore;
+        private Double fScore;
+
+        public Node(Node parent, Position position, Double gScore, Double heuristic)
+<span class="fc" id="L49">        {</span>
+<span class="fc" id="L50">            this.parent = parent;</span>
+<span class="fc" id="L51">            this.position = position;</span>
+<span class="fc" id="L52">            this.gScore = gScore;</span>
+<span class="fc" id="L53">            this.fScore = heuristic + this.gScore;</span>
+<span class="fc" id="L54">        }</span>
+
+        @Override
+        public int compareTo(Node other)
+        {
+<span class="fc" id="L59">            return Double.compare(fScore, other.fScore);</span>
+        }
+
+    }
+
+    //Calculate the Euclidean distance between two given positions
+    public Double calculateDistance(Position position1, Position position2)
+    {
+<span class="fc" id="L67">        Double lng1 = position1.getLng();</span>
+<span class="fc" id="L68">        Double lat1 = position1.getLat();</span>
+<span class="fc" id="L69">        Double lng2 = position2.getLng();</span>
+<span class="fc" id="L70">        Double lat2 = position2.getLat();</span>
+
+<span class="fc" id="L72">        double lngDiff = lng2 - lng1;</span>
+<span class="fc" id="L73">        double latDiff = lat2 - lat1;</span>
+
+<span class="fc" id="L75">        Double distance = Math.sqrt(Math.pow(lngDiff, 2) + Math.pow(latDiff, 2));</span>
+
+        //Rounding the result to five decimal places before returning
+<span class="fc" id="L78">        DecimalFormat df = new DecimalFormat(&quot;#.#####&quot;);</span>
+<span class="fc" id="L79">        df.setRoundingMode(RoundingMode.HALF_EVEN);</span>
+
+<span class="fc" id="L81">        return  Double.parseDouble(df.format(distance));</span>
+    }
+
+    //Return list of edges based on the given vertices
+    public ArrayList&lt;PositionsRequest&gt; getRegionEdges(Region region)
+    {
+        // don't mutate the original list by copying
+<span class="fc" id="L88">        ArrayList&lt;Position&gt; vertices = new ArrayList&lt;&gt;(region.getVertices());</span>
+
+        //Append the first vertex to the end to ensure the last edge closes the region
+<span class="fc" id="L91">        vertices.add(vertices.getFirst());</span>
+<span class="fc" id="L92">        ArrayList&lt;PositionsRequest&gt; edges = new ArrayList&lt;&gt;();</span>
+
+        //Make positon pairs of the adjacent vertices
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        for (int i = 0; i &lt; vertices.size() - 1; i++)</span>
+        {
+<span class="fc" id="L97">            Position start = vertices.get(i);</span>
+<span class="fc" id="L98">            Position end = vertices.get(i + 1);</span>
+<span class="fc" id="L99">            edges.add(new PositionsRequest(start, end));</span>
+        }
+
+<span class="fc" id="L102">        return edges;</span>
+    }
+
+    //Checking if the given position is on an edge of the region
+    public boolean isPositionOnEdge(Position vertex, PositionsRequest edge)
+    {
+<span class="fc" id="L108">        Double x1 = edge.getPosition1().getLng();</span>
+<span class="fc" id="L109">        Double y1 = edge.getPosition1().getLat();</span>
+<span class="fc" id="L110">        Double x2 = edge.getPosition2().getLng();</span>
+<span class="fc" id="L111">        Double y2 = edge.getPosition2().getLat();</span>
+<span class="fc" id="L112">        Double xv = vertex.getLng();</span>
+<span class="fc" id="L113">        Double yv = vertex.getLat();</span>
+
+        //Gradient check
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (Math.abs((y2-y1)*(xv-x1) - (yv-y1)*(x2-x1)) &lt;= 1e-9)</span>
+        {
+            //Boundary checks
+<span class="fc bfc" id="L119" title="All 4 branches covered.">            if (Math.min(y1, y2) &lt;= yv &amp;&amp; yv &lt;= Math.max(y1, y2))</span>
+            {
+<span class="pc bpc" id="L121" title="2 of 4 branches missed.">                if (Math.min(x1, x2) &lt;= xv &amp;&amp; xv &lt;= Math.max(x1, x2))</span>
+                {
+<span class="nc" id="L123">                    return true;</span>
+                }
+            }
+        }
+<span class="fc" id="L127">        return false;</span>
+    }
+
+    //Check if the horizontal ray is intersecting with an edge of the region
+    public boolean isEdgeIntersectWithRay(Position vertex, PositionsRequest edge)
+    {
+<span class="fc" id="L133">        Double x1 = edge.getPosition1().getLng();</span>
+<span class="fc" id="L134">        Double y1 = edge.getPosition1().getLat();</span>
+<span class="fc" id="L135">        Double x2 = edge.getPosition2().getLng();</span>
+<span class="fc" id="L136">        Double y2 = edge.getPosition2().getLat();</span>
+<span class="fc" id="L137">        Double xv = vertex.getLng();</span>
+<span class="fc" id="L138">        Double yv = vertex.getLat();</span>
+
+        //We don't take the horizontal line into consideration
+        //Also, if the vertex is on the right of the right most point of the edge then there is no intersection
+<span class="fc bfc" id="L142" title="All 4 branches covered.">        if(Objects.equals(y1, y2) || Math.max(x1,x2) &lt;= xv)</span>
+        {
+<span class="fc" id="L144">            return false;</span>
+        }
+
+        //Then consider when the ray is between two points of the edge
+<span class="fc bfc" id="L148" title="All 4 branches covered.">        if(Math.min(y1,y2) &lt;= yv &amp;&amp; yv &lt;= Math.max(y1,y2))</span>
+        {
+            //In the case where line is vertical, there must be an intersection
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">            if(Objects.equals(x1, x2))</span>
+            {
+<span class="fc" id="L153">                return true;</span>
+            }
+            //Otherwise we calculate the x coordinate of the intersection
+            else
+            {
+<span class="nc" id="L158">                double m = (y2-y1)/(x2-x1);</span>
+<span class="nc" id="L159">                double xi = (yv - y1)/m + x1;</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                return xv &lt; xi;</span>
+            }
+        }
+
+        //If the ray is lower or higher than the edge, return false
+<span class="fc" id="L165">        return false;</span>
+    }
+
+    public boolean isInRegion(PositionRegionRequest Request)
+    {
+        //Ray casting algorithm
+<span class="fc" id="L171">        Position position = Request.getPosition();</span>
+<span class="fc" id="L172">        Region region = Request.getRegion();</span>
+
+        //Number of intersection between the ray and the region edges
+<span class="fc" id="L175">        int count = 0;</span>
+<span class="fc" id="L176">        ArrayList&lt;PositionsRequest&gt; edges = getRegionEdges(region);</span>
+
+        //Iterate through all edges
+<span class="fc bfc" id="L179" title="All 2 branches covered.">        for(PositionsRequest edge : edges)</span>
+        {
+            //If the position is on the edge of the region, return true directly
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">            if (isPositionOnEdge(position,edge))</span>
+            {
+<span class="nc" id="L184">                return true;</span>
+            }
+            //Else check if the ray intersect with the edge
+<span class="fc bfc" id="L187" title="All 2 branches covered.">            else if(isEdgeIntersectWithRay(position, edge))</span>
+            {
+<span class="fc" id="L189">                count++;</span>
+            }
+<span class="fc" id="L191">        }</span>
+
+        //If the number of intersection is odd, then the position is inside the region
+<span class="fc bfc" id="L194" title="All 2 branches covered.">        return count % 2 != 0;</span>
+    }
+
+    // Called by the main loop, try the get the attribute value based on the string
+    public Object getDroneAttributeValue(Drone drone, String attribute)
+    {
+        // TODO evaluate the need of try
+        try
+        {
+<span class="nc" id="L203">            Object attributeValue = null;</span>
+            // TODO is there a chance where capability is null no i guess
+<span class="nc" id="L205">            Capability capability = drone.getCapability();</span>
+
+<span class="nc" id="L207">            Map&lt;String, Object&gt; droneAttributeDic = objectMapper.convertValue(drone, new TypeReference&lt;&gt;() {});</span>
+<span class="nc" id="L208">            Map&lt;String, Object&gt; capabilityAttributeDic = objectMapper.convertValue(capability, new TypeReference&lt;&gt;() {});</span>
+
+<span class="nc bnc" id="L210" title="All 2 branches missed.">            if (droneAttributeDic.containsKey(attribute)) {</span>
+<span class="nc" id="L211">                attributeValue = droneAttributeDic.get(attribute);</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">            } else if (capabilityAttributeDic.containsKey(attribute)) {</span>
+<span class="nc" id="L213">                attributeValue = capabilityAttributeDic.get(attribute);</span>
+            }
+
+<span class="nc" id="L216">            return attributeValue;</span>
+        }
+<span class="nc" id="L218">        catch (NumberFormatException e)</span>
+        {
+<span class="nc" id="L220">            return null;</span>
+        }
+<span class="nc" id="L222">        catch (Exception e)</span>
+        {
+<span class="nc" id="L224">            System.err.println(&quot;Error matching condition: &quot; + e.getMessage());</span>
+<span class="nc" id="L225">            return null;</span>
+        }
+    }
+
+    // Called by the main loop, accepting the attribute value and the passed value, check type and compare
+    public boolean checkDroneMatchesQuery (Object droneAttributeValue, String value, String operator)
+    {
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        if (droneAttributeValue instanceof Number)</span>
+        {
+<span class="nc" id="L234">            double valueDouble = Double.parseDouble(value);</span>
+<span class="nc" id="L235">            double droneAttributeValueDouble = ((Number)droneAttributeValue).doubleValue();</span>
+<span class="nc bnc" id="L236" title="All 7 branches missed.">            return switch (operator)</span>
+            {
+<span class="nc bnc" id="L238" title="All 2 branches missed.">                case &quot;=&quot; -&gt; droneAttributeValueDouble == valueDouble;</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                case &quot;!=&quot; -&gt; droneAttributeValueDouble != valueDouble;</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                case &quot;&gt;=&quot; -&gt; droneAttributeValueDouble &gt;= valueDouble;</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                case &quot;&lt;=&quot; -&gt; droneAttributeValueDouble &lt;= valueDouble;</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">                case &quot;&gt;&quot; -&gt; droneAttributeValueDouble &gt; valueDouble;</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">                case &quot;&lt;&quot; -&gt; droneAttributeValueDouble &lt; valueDouble;</span>
+<span class="nc" id="L244">                default -&gt; false;</span>
+            };
+        }
+<span class="nc bnc" id="L247" title="All 2 branches missed.">        else if (droneAttributeValue instanceof Boolean)</span>
+        {
+<span class="nc" id="L249">            boolean valueBoolean = Boolean.parseBoolean(value);</span>
+<span class="nc" id="L250">            boolean droneAttributeValueBoolean = (boolean) droneAttributeValue;</span>
+
+<span class="nc bnc" id="L252" title="All 3 branches missed.">            return switch (operator)</span>
+            {
+<span class="nc bnc" id="L254" title="All 2 branches missed.">                case &quot;=&quot; -&gt; valueBoolean == droneAttributeValueBoolean;</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">                case &quot;!=&quot; -&gt; valueBoolean != droneAttributeValueBoolean;</span>
+<span class="nc" id="L256">                default -&gt; false;</span>
+            };
+        }
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        else if (droneAttributeValue instanceof String)</span>
+        {
+<span class="nc" id="L261">            String droneAttributeValueString = (String) droneAttributeValue;</span>
+
+<span class="nc bnc" id="L263" title="All 3 branches missed.">            return switch (operator)</span>
+            {
+<span class="nc" id="L265">                case &quot;=&quot; -&gt; Objects.equals(value, droneAttributeValueString);</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">                case &quot;!=&quot; -&gt; !Objects.equals(value, droneAttributeValueString);</span>
+<span class="nc" id="L267">                default -&gt; false;</span>
+            };
+
+        }
+<span class="nc" id="L271">        return true;</span>
+    }
+
+    public Map&lt;String, ArrayList&lt;Availability&gt;&gt;  getAvailabilityMap(ArrayList&lt;ServicePointDrones&gt; droneServicePoints)
+    {
+<span class="nc" id="L276">        Map&lt;String, ArrayList&lt;Availability&gt;&gt; availabilityMap = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">        for (ServicePointDrones dsp : droneServicePoints) {</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">            for (DroneAvailability da : dsp.getDrones()) {</span>
+<span class="nc" id="L279">                String id = da.getId();</span>
+<span class="nc" id="L280">                availabilityMap</span>
+<span class="nc" id="L281">                        .computeIfAbsent(id, k -&gt; new ArrayList&lt;&gt;())</span>
+<span class="nc" id="L282">                        .addAll(da.getAvailability());</span>
+<span class="nc" id="L283">            }</span>
+<span class="nc" id="L284">        }</span>
+<span class="nc" id="L285">        return availabilityMap;</span>
+    }
+
+    public boolean checkDroneMeetsRequirements(Drone drone, MedicineDispatchRequest query, Position droneBase)
+    {
+<span class="nc" id="L290">        Requirements requirements = query.getRequirements();</span>
+<span class="nc" id="L291">        Capability capability = drone.getCapability();</span>
+<span class="nc" id="L292">        boolean result = true;</span>
+
+<span class="nc bnc" id="L294" title="All 2 branches missed.">        if(requirements.getCapacity() &gt; capability.getCapacity())</span>
+        {
+<span class="nc" id="L296">            result = false;</span>
+        }
+
+<span class="nc bnc" id="L299" title="All 6 branches missed.">        if(requirements.getCooling() != null &amp;&amp; requirements.getCooling() &amp;&amp; !capability.getCooling())</span>
+        {
+<span class="nc" id="L301">            result = false;</span>
+        }
+
+<span class="nc bnc" id="L304" title="All 6 branches missed.">        if(requirements.getHeating() != null &amp;&amp; requirements.getHeating() &amp;&amp; !capability.getHeating())</span>
+        {
+<span class="nc" id="L306">            result = false;</span>
+        }
+
+        // always checking moves
+<span class="nc bnc" id="L310" title="All 2 branches missed.">        if (droneBase == null)</span>
+        {
+<span class="nc" id="L312">            result = false;</span>
+        }
+        else
+        {
+<span class="nc" id="L316">            double distance = calculateDistance(query.getDelivery(), droneBase) * 2;</span>
+<span class="nc" id="L317">            double moves = Math.round( distance / unitLength);</span>
+<span class="nc" id="L318">            double cost = capability.getCostInitial() + capability.getCostFinal() + moves * capability.getCostPerMove();</span>
+
+<span class="nc bnc" id="L320" title="All 2 branches missed.">            boolean deliveryNotExceedsMaxMove = (moves &lt;= capability.getMaxMoves());</span>
+<span class="nc bnc" id="L321" title="All 4 branches missed.">            boolean deliveryNotExceedsMaxCost = ((requirements.getMaxCost() == null) || (cost &lt;= requirements.getMaxCost()));</span>
+
+<span class="nc bnc" id="L323" title="All 4 branches missed.">            if (!(deliveryNotExceedsMaxMove &amp;&amp; deliveryNotExceedsMaxCost))</span>
+            {
+<span class="nc" id="L325">                result = false;</span>
+            }
+        }
+
+
+
+
+<span class="nc" id="L332">        return result;</span>
+    }
+
+    public boolean checkDroneIsAvailable(Drone drone, MedicineDispatchRequest query, Map&lt;String, ArrayList&lt;Availability&gt;&gt; availabilityMap)
+    {
+<span class="nc" id="L337">        ArrayList&lt;Availability&gt; availabilities = availabilityMap.get(drone.getId());</span>
+<span class="nc" id="L338">        LocalDate date = query.getDate();</span>
+<span class="nc" id="L339">        LocalTime time = query.getTime();</span>
+<span class="nc" id="L340">        boolean result = false;</span>
+        boolean dayOfWeekMatches;
+        boolean timeMatches;
+
+<span class="nc bnc" id="L344" title="All 4 branches missed.">        if (availabilities == null || availabilities.isEmpty())</span>
+        {
+<span class="nc" id="L346">            return false;</span>
+        }
+
+
+<span class="nc bnc" id="L350" title="All 2 branches missed.">        for (Availability availability: availabilities)</span>
+        {
+<span class="nc bnc" id="L352" title="All 2 branches missed.">            if (date != null)</span>
+            {
+<span class="nc bnc" id="L354" title="All 2 branches missed.">                dayOfWeekMatches = (date.getDayOfWeek() == availability.getDayOfWeek());</span>
+            }
+            else
+            {
+<span class="nc" id="L358">                dayOfWeekMatches = true;</span>
+            }
+
+<span class="nc bnc" id="L361" title="All 2 branches missed.">            if (time != null)</span>
+            {
+<span class="nc bnc" id="L363" title="All 4 branches missed.">                timeMatches = !time.isBefore(availability.getFrom()) &amp;&amp; !time.isAfter(availability.getUntil());</span>
+            }
+            else
+            {
+<span class="nc" id="L367">                timeMatches = true;</span>
+            }
+
+<span class="nc bnc" id="L370" title="All 4 branches missed.">            if(dayOfWeekMatches &amp;&amp; timeMatches)</span>
+            {
+<span class="nc" id="L372">                result = true;</span>
+<span class="nc" id="L373">                break;</span>
+            }
+<span class="nc" id="L375">        }</span>
+<span class="nc" id="L376">        return  result;</span>
+    }
+
+    public Set&lt;LocalDate&gt; getAllDates(ArrayList&lt;MedicineDispatchRequest&gt; quires)
+    {
+<span class="fc" id="L381">        Set&lt;LocalDate&gt; dates = new HashSet&lt;&gt;();</span>
+<span class="fc bfc" id="L382" title="All 2 branches covered.">        for (MedicineDispatchRequest query: quires)</span>
+        {
+<span class="fc" id="L384">            dates.add(query.getDate());</span>
+<span class="fc" id="L385">        }</span>
+<span class="fc" id="L386">        return dates;</span>
+    }
+
+    public ArrayList&lt;MedicineDispatchRequest&gt; getMedicineDispatchByDate(ArrayList&lt;MedicineDispatchRequest&gt; queries, LocalDate date)
+    {
+<span class="fc" id="L391">        ArrayList&lt;MedicineDispatchRequest&gt; medicineDispatchRequestsByDate = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L392" title="All 2 branches covered.">        for (MedicineDispatchRequest query: queries)</span>
+        {
+<span class="pc bpc" id="L394" title="1 of 2 branches missed.">            if(query.getDate().equals(date))</span>
+            {
+<span class="fc" id="L396">                medicineDispatchRequestsByDate.add(query);</span>
+            }
+<span class="fc" id="L398">        }</span>
+<span class="fc" id="L399">        return medicineDispatchRequestsByDate;</span>
+    }
+
+
+    // For a given date time and a given drone, return position of the service point if the drone is available there
+    public Position getServicePointPosition(String droneId, ArrayList&lt;ServicePointDrones&gt; servicePointsDrones, ArrayList&lt;ServicePoint&gt; servicePoints, LocalDate date, LocalTime time)
+    {
+<span class="fc" id="L406">        int servicePointId = -1;</span>
+<span class="pc bpc" id="L407" title="1 of 2 branches missed.">        for (ServicePointDrones servicePointDrone: servicePointsDrones)</span>
+        {
+<span class="pc bpc" id="L409" title="1 of 2 branches missed.">            for (DroneAvailability droneAvailability : servicePointDrone.getDrones())</span>
+            {
+<span class="pc bpc" id="L411" title="1 of 2 branches missed.">                if (droneId.equals(droneAvailability.getId()))</span>
+                {
+<span class="pc bpc" id="L413" title="1 of 2 branches missed.">                    for (Availability availability: droneAvailability.getAvailability())</span>
+                    {
+<span class="fc bfc" id="L415" title="All 2 branches covered.">                        if(availability.getDayOfWeek().equals(date.getDayOfWeek()))</span>
+                        {
+<span class="pc bpc" id="L417" title="2 of 4 branches missed.">                            if(!time.isBefore(availability.getFrom()) &amp;&amp; !time.isAfter(availability.getUntil()))</span>
+                            {
+<span class="fc" id="L419">                                servicePointId = servicePointDrone.getServicePointId();</span>
+<span class="fc" id="L420">                                break;</span>
+                            }
+                        }
+<span class="fc" id="L423">                    }</span>
+                }
+<span class="pc bpc" id="L425" title="1 of 2 branches missed.">                if (servicePointId != -1)</span>
+                {
+<span class="fc" id="L427">                    break;</span>
+                }
+<span class="nc" id="L429">            }</span>
+<span class="pc bpc" id="L430" title="1 of 2 branches missed.">            if (servicePointId != -1)</span>
+            {
+<span class="fc" id="L432">                break;</span>
+            }
+<span class="nc" id="L434">        }</span>
+
+<span class="fc" id="L436">        Position servicePointPosition = null;</span>
+<span class="pc bpc" id="L437" title="1 of 2 branches missed.">        if  (servicePointId != -1)</span>
+        {
+<span class="pc bpc" id="L439" title="1 of 2 branches missed.">            for (ServicePoint servicePoint: servicePoints)</span>
+            {
+<span class="pc bpc" id="L441" title="1 of 2 branches missed.">                if (servicePoint.getId().equals(servicePointId))</span>
+                {
+<span class="fc" id="L443">                    servicePointPosition = servicePoint.getLocation();</span>
+<span class="fc" id="L444">                    break;</span>
+                }
+<span class="nc" id="L446">            }</span>
+        }
+<span class="fc" id="L448">        return servicePointPosition;</span>
+    }
+
+
+    public void addDeliveriesToRetunedPath(String droneId, Integer deliveryId, ArrayList&lt;Position&gt; delivery, ReturnedPath returnedPath)
+    {
+<span class="fc" id="L454">        boolean droneIdStored = false;</span>
+<span class="fc bfc" id="L455" title="All 2 branches covered.">        for (DronePath dronePath: returnedPath.getDronePaths())</span>
+        {
+<span class="pc bpc" id="L457" title="1 of 2 branches missed.">            if (dronePath.getDroneId().equals(droneId))</span>
+            {
+<span class="fc" id="L459">                droneIdStored = true;</span>
+<span class="fc" id="L460">                dronePath.getDeliveries().add(new Deliveries(deliveryId, delivery));</span>
+<span class="fc" id="L461">                break;</span>
+            }
+<span class="nc" id="L463">        }</span>
+
+<span class="fc bfc" id="L465" title="All 2 branches covered.">        if(!droneIdStored)</span>
+        {
+<span class="fc" id="L467">            ArrayList&lt;Deliveries&gt; deliveries = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L468">            deliveries.add(new Deliveries(deliveryId, delivery));</span>
+<span class="fc" id="L469">            DronePath newDronePath = new DronePath(droneId,deliveries);</span>
+<span class="fc" id="L470">            returnedPath.getDronePaths().add(newDronePath);</span>
+        }
+
+<span class="fc" id="L473">    }</span>
+
+    private double orient(Position a, Position b, Position c) {
+<span class="fc" id="L476">        double x1 = b.getLng() - a.getLng();</span>
+<span class="fc" id="L477">        double y1 = b.getLat() - a.getLat();</span>
+<span class="fc" id="L478">        double x2 = c.getLng() - a.getLng();</span>
+<span class="fc" id="L479">        double y2 = c.getLat() - a.getLat();</span>
+<span class="fc" id="L480">        return x1 * y2 - y1 * x2;</span>
+    }
+
+    //using error to prevent floating point error
+    private boolean onSegment(Position a, Position b, Position c) {
+        // check if c is between a and b (inclusive)
+<span class="fc" id="L486">        double minLng = Math.min(a.getLng(), b.getLng()) - error;</span>
+<span class="fc" id="L487">        double maxLng = Math.max(a.getLng(), b.getLng()) + error;</span>
+<span class="fc" id="L488">        double minLat = Math.min(a.getLat(), b.getLat()) - error;</span>
+<span class="fc" id="L489">        double maxLat = Math.max(a.getLat(), b.getLat()) + error;</span>
+<span class="pc bpc" id="L490" title="2 of 8 branches missed.">        return c.getLng() &gt;= minLng &amp;&amp; c.getLng() &lt;= maxLng &amp;&amp; c.getLat() &gt;= minLat &amp;&amp; c.getLat() &lt;= maxLat;</span>
+    }
+
+    //using error to prevent floating point error
+    public boolean segmentsIntersect(Position p1, Position p2, Position q1, Position q2)
+    {
+<span class="fc" id="L496">        double o1 = orient(p1, p2, q1);</span>
+<span class="fc" id="L497">        double o2 = orient(p1, p2, q2);</span>
+<span class="fc" id="L498">        double o3 = orient(q1, q2, p1);</span>
+<span class="fc" id="L499">        double o4 = orient(q1, q2, p2);</span>
+
+        // intersection
+<span class="fc bfc" id="L502" title="All 4 branches covered.">        if (o1 * o2 &lt; 0 &amp;&amp; o3 * o4 &lt; 0)</span>
+        {
+<span class="fc" id="L504">            return true;</span>
+        }
+
+        // Touching cases
+<span class="pc bpc" id="L508" title="1 of 4 branches missed.">        if (Math.abs(o1) &lt; error &amp;&amp; onSegment(p1, p2, q1))</span>
+        {
+<span class="nc" id="L510">            return true;</span>
+        }
+<span class="pc bpc" id="L512" title="1 of 4 branches missed.">        if (Math.abs(o2) &lt; error &amp;&amp; onSegment(p1, p2, q2))</span>
+        {
+<span class="nc" id="L514">            return true;</span>
+        }
+<span class="pc bpc" id="L516" title="1 of 4 branches missed.">        if (Math.abs(o3) &lt; error &amp;&amp; onSegment(q1, q2, p1))</span>
+        {
+<span class="nc" id="L518">            return true;</span>
+        }
+<span class="pc bpc" id="L520" title="1 of 4 branches missed.">        if (Math.abs(o4) &lt; error &amp;&amp; onSegment(q1, q2, p2))</span>
+        {
+<span class="nc" id="L522">            return true;</span>
+        }
+
+<span class="fc" id="L525">        return false;</span>
+    }
+
+    public boolean isPathIntersectingAreaEdges(PositionsRequest path, RestrictedArea restrictedArea)
+    {
+<span class="fc" id="L530">        boolean intersects = false;</span>
+<span class="fc" id="L531">        ArrayList&lt;PositionsRequest&gt; edges = getRegionEdges(new Region(restrictedArea.getName(), restrictedArea.getVertices()));</span>
+
+<span class="fc" id="L533">        Position p1 = path.getPosition1();</span>
+<span class="fc" id="L534">        Position p2 = path.getPosition2();</span>
+
+<span class="fc bfc" id="L536" title="All 2 branches covered.">        for (PositionsRequest edge : edges)</span>
+        {
+<span class="fc" id="L538">            Position q1 = edge.getPosition1();</span>
+<span class="fc" id="L539">            Position q2 = edge.getPosition2();</span>
+
+<span class="fc bfc" id="L541" title="All 2 branches covered.">            if (segmentsIntersect(p1, p2, q1, q2))</span>
+            {
+<span class="fc" id="L543">                intersects = true;</span>
+<span class="fc" id="L544">                break;</span>
+            }
+<span class="fc" id="L546">        }</span>
+<span class="fc" id="L547">        return intersects;</span>
+    }
+
+
+
+    public boolean isPathCrossingRestrictionArea (PositionsRequest path, ArrayList&lt;RestrictedArea&gt; restrictedAreas)
+    {
+<span class="fc" id="L554">        boolean crossed = false;</span>
+
+<span class="fc bfc" id="L556" title="All 2 branches covered.">        for (RestrictedArea restrictedArea: restrictedAreas)</span>
+        {
+<span class="fc" id="L558">            Region region = new Region(restrictedArea.getName(), restrictedArea.getVertices());</span>
+<span class="fc" id="L559">            PositionRegionRequest positionRegionRequest = new PositionRegionRequest(path.getPosition2(),region);</span>
+<span class="fc bfc" id="L560" title="All 4 branches covered.">            if(isInRegion(positionRegionRequest) || isPathIntersectingAreaEdges(path,restrictedArea))</span>
+            {
+<span class="fc" id="L562">                crossed = true;</span>
+<span class="fc" id="L563">                break;</span>
+            }
+<span class="fc" id="L565">        }</span>
+
+<span class="fc" id="L567">        return crossed;</span>
+    }
+
+    public String getKey(Position position)
+    {
+<span class="fc" id="L572">        long lngRounded = Math.round(position.getLng() / unitLength);</span>
+<span class="fc" id="L573">        long latRounded = Math.round(position.getLat() / unitLength);</span>
+
+<span class="fc" id="L575">        return lngRounded + &quot;,&quot; + latRounded;</span>
+    }
+
+    public ArrayList&lt;Position&gt; calculatePath(Node node)
+    {
+<span class="fc" id="L580">        ArrayList&lt;Position&gt; path = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L581" title="All 2 branches covered.">        while(node.parent != null)</span>
+        {
+<span class="fc" id="L583">            path.add(node.position);</span>
+<span class="fc" id="L584">            node = node.parent;</span>
+        }
+<span class="fc" id="L586">        path.add(node.position);</span>
+<span class="fc" id="L587">        Collections.reverse(path);</span>
+<span class="fc" id="L588">        return path;</span>
+    }
+
+    public ArrayList&lt;Position&gt; aStarSearch(Position start, Position end, ArrayList&lt;RestrictedArea&gt; restrictedAreas)
+    {
+        // Set up
+<span class="fc" id="L594">        int expansions = 0;</span>
+<span class="fc" id="L595">        int maxExpansions = 1000000;</span>
+<span class="fc" id="L596">        PriorityQueue&lt;Node&gt; minHeap = new PriorityQueue&lt;&gt;();</span>
+<span class="fc" id="L597">        Set&lt;String&gt; visited = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L598">        minHeap.add(new Node( null, start,0.0,calculateDistance(start,end)));</span>
+
+        //main loop
+<span class="fc bfc" id="L601" title="All 2 branches covered.">        while (!minHeap.isEmpty())</span>
+        {
+<span class="fc" id="L603">            Node u = minHeap.poll();</span>
+
+<span class="fc bfc" id="L605" title="All 2 branches covered.">            if (expansions++ &gt;= maxExpansions)</span>
+            {
+<span class="fc" id="L607">                return new ArrayList&lt;&gt;(); // treat as &quot;no path&quot;, too many expansions</span>
+            }
+
+<span class="fc bfc" id="L610" title="All 2 branches covered.">            if (calculateDistance(u.getPosition(), end) &lt; unitLength)</span>
+            {
+<span class="fc" id="L612">                return calculatePath(u);</span>
+            }
+<span class="fc bfc" id="L614" title="All 2 branches covered.">            if (!visited.contains(getKey(u.getPosition())))</span>
+            {
+<span class="fc" id="L616">                visited.add(getKey(u.getPosition()));</span>
+<span class="fc bfc" id="L617" title="All 2 branches covered.">                for (double angle = 0.0; angle &lt; 360; angle += 22.5)</span>
+                {
+<span class="fc" id="L619">                    double angleRad = Math.toRadians(angle);</span>
+<span class="fc" id="L620">                    Double nextLng = unitLength * Math.cos(angleRad) + u.getPosition().getLng();</span>
+<span class="fc" id="L621">                    Double nextLat = unitLength * Math.sin(angleRad) + u.getPosition().getLat();</span>
+<span class="fc" id="L622">                    Position nextPosition = new Position(nextLng,nextLat);</span>
+<span class="fc" id="L623">                    PositionsRequest path = new  PositionsRequest(u.getPosition(),nextPosition);</span>
+<span class="fc" id="L624">                    Node v = new Node(u, nextPosition, u.getGScore() + unitLength, calculateDistance(nextPosition, end));</span>
+
+<span class="fc bfc" id="L626" title="All 4 branches covered.">                    if (!visited.contains(getKey(v.getPosition())) &amp;&amp; !isPathCrossingRestrictionArea(path,restrictedAreas))</span>
+                    {
+<span class="fc" id="L628">                        minHeap.add(v);</span>
+                    }
+                }
+            }
+<span class="fc" id="L632">        }</span>
+<span class="fc" id="L633">        return new ArrayList&lt;&gt;();</span>
+    }
+
+    private String safe(String s) {
+<span class="pc bpc" id="L637" title="1 of 2 branches missed.">        if (s == null) return &quot;&quot;;</span>
+        // crude comma escape for coursework; good enough
+<span class="fc" id="L639">        return s.replace(&quot;,&quot;, &quot; &quot;);</span>
+    }
+
+    private String safeInteger(Integer i) {
+<span class="pc bpc" id="L643" title="1 of 2 branches missed.">        return (i == null) ? &quot;&quot; : i.toString();</span>
+    }
+
+    private double safeDouble(Double d) {
+<span class="pc bpc" id="L647" title="1 of 2 branches missed.">        return (d == null) ? 0.0 : d;</span>
+    }
+
+    private String safeBool(Boolean b) {
+<span class="pc bpc" id="L651" title="1 of 2 branches missed.">        return (b == null) ? &quot;&quot; : b.toString();</span>
+    }
+
+    private String safeDate(java.time.LocalDate d) {
+<span class="pc bpc" id="L655" title="1 of 2 branches missed.">        return (d == null) ? &quot;&quot; : d.toString();</span>
+    }
+
+    private String safeTime(java.time.LocalTime t) {
+<span class="pc bpc" id="L659" title="1 of 2 branches missed.">        return (t == null) ? &quot;&quot; : t.toString();</span>
+    }
+
+    public void log(LogEntry logEntry)
+    {
+<span class="fc" id="L664">        Path logFile = Paths.get(&quot;delivery_logs.csv&quot;).toAbsolutePath();</span>
+        try
+        {
+<span class="pc bpc" id="L667" title="1 of 2 branches missed.">            if (!Files.exists(logFile))</span>
+            {
+<span class="nc" id="L669">                Files.writeString(</span>
+                        logFile,
+                        &quot;deliveryId,&quot; +
+                                &quot;droneId,&quot; +
+                                &quot;servicePointLng,&quot; +
+                                &quot;servicePointLat,&quot; +
+                                &quot;servicePointId,&quot; +
+                                &quot;servicePointName,&quot; +
+                                &quot;deliveryPointLng,&quot; +
+                                &quot;deliveryPointLat,&quot; +
+                                &quot;deliveryDate,&quot; +
+                                &quot;deliveryTime,&quot; +
+                                &quot;actualCost,&quot; +
+                                &quot;requiredCapacity,&quot; +
+                                &quot;coolingRequired,&quot; +
+                                &quot;heatingRequired&quot; +
+                                &quot;\n&quot;);
+            }
+        }
+<span class="nc" id="L688">        catch (IOException e)</span>
+        {
+<span class="nc" id="L690">            System.err.println(&quot;Error while trying to log entry: &quot; + e.getMessage());</span>
+<span class="fc" id="L691">        }</span>
+
+<span class="fc" id="L693">        String line = String.format(</span>
+                &quot;%s,%s,%.7f,%.7f,%s,%s,%.7f,%.7f,%s,%s,%.4f,%.2f,%s,%s%n&quot;,
+<span class="fc" id="L695">                safeInteger(logEntry.getDeliveryId()),</span>
+<span class="fc" id="L696">                safe(logEntry.getDroneId()),</span>
+<span class="fc" id="L697">                safeDouble(logEntry.getServicePointLng()),</span>
+<span class="fc" id="L698">                safeDouble(logEntry.getServicePointLat()),</span>
+<span class="fc" id="L699">                safeInteger(logEntry.getServicePointId()),</span>
+<span class="fc" id="L700">                safe(logEntry.getServicePointName()),</span>
+<span class="fc" id="L701">                safeDouble(logEntry.getDeliveryPointLng()),</span>
+<span class="fc" id="L702">                safeDouble(logEntry.getDeliveryPointLat()),</span>
+<span class="fc" id="L703">                safeDate(logEntry.getDeliveryDate()),</span>
+<span class="fc" id="L704">                safeTime(logEntry.getDeliveryTime()),</span>
+<span class="fc" id="L705">                safeDouble(logEntry.getActualCost()),</span>
+<span class="fc" id="L706">                safeDouble(logEntry.getRequiredCapacity()),</span>
+<span class="fc" id="L707">                safeBool(logEntry.getCoolingRequired()),</span>
+<span class="fc" id="L708">                safeBool(logEntry.getHeatingRequired())</span>
+        );
+
+<span class="fc" id="L711">        try (BufferedWriter w = Files.newBufferedWriter(logFile, StandardOpenOption.APPEND))</span>
+        {
+<span class="fc" id="L713">            w.write(line);</span>
+        }
+<span class="nc" id="L715">        catch (IOException e)</span>
+        {
+<span class="nc" id="L717">            System.err.println(&quot;Error while trying to log entry: &quot; + e.getMessage());</span>
+<span class="fc" id="L718">        }</span>
+<span class="fc" id="L719">    }</span>
+
+    public ServicePoint getServicePoint(Position servicePointPosition, ArrayList&lt;ServicePoint&gt; servicePoints)
+    {
+<span class="pc bpc" id="L723" title="1 of 2 branches missed.">        if (servicePointPosition == null)</span>
+        {
+<span class="nc" id="L725">            return null;</span>
+        }
+<span class="fc" id="L727">        ServicePoint targetServicePoint = null;</span>
+<span class="pc bpc" id="L728" title="1 of 2 branches missed.">        for (ServicePoint servicePoint: servicePoints)</span>
+        {
+<span class="fc" id="L730">            Position currentPosition = servicePoint.getLocation();</span>
+<span class="pc bpc" id="L731" title="2 of 4 branches missed.">            if (Objects.equals(servicePointPosition.getLat(), currentPosition.getLat()) &amp;&amp; Objects.equals(servicePointPosition.getLng(), currentPosition.getLng()))</span>
+            {
+<span class="fc" id="L733">                targetServicePoint = servicePoint;</span>
+<span class="fc" id="L734">                break;</span>
+            }
+<span class="nc" id="L736">        }</span>
+<span class="fc" id="L737">        return targetServicePoint;</span>
+    }
+
+    public MedicineDispatchRequest getMedicineDispatchRequestById(Integer id, ArrayList&lt;MedicineDispatchRequest&gt; queries) {
+<span class="pc bpc" id="L741" title="2 of 4 branches missed.">        if (id == null || queries == null)</span>
+        {
+<span class="nc" id="L743">            return null;</span>
+        }
+
+<span class="pc bpc" id="L746" title="1 of 2 branches missed.">        for (MedicineDispatchRequest query : queries)</span>
+        {
+<span class="pc bpc" id="L748" title="2 of 4 branches missed.">            if (query != null &amp;&amp; id.equals(query.getId()))</span>
+            {
+<span class="fc" id="L750">                return query;</span>
+            }
+<span class="nc" id="L752">        }</span>
+<span class="nc" id="L753">        return null;</span>
+    }
+
+
+    public void logReturnedPath(ReturnedPath returnedPath, ArrayList&lt;MedicineDispatchRequest&gt; queries, ArrayList&lt;ServicePoint&gt; servicePoints)
+    {
+<span class="pc bpc" id="L759" title="2 of 4 branches missed.">        if (returnedPath == null || returnedPath.getDronePaths() == null)</span>
+        {
+<span class="nc" id="L761">            return;</span>
+        }
+
+<span class="fc bfc" id="L764" title="All 2 branches covered.">        for (DronePath dronePath : returnedPath.getDronePaths()) {</span>
+<span class="pc bpc" id="L765" title="3 of 6 branches missed.">            if (dronePath == null || dronePath.getDeliveries() == null || dronePath.getDeliveries().isEmpty())</span>
+            {
+<span class="nc" id="L767">                continue;</span>
+            }
+
+<span class="fc" id="L770">            String  droneId = dronePath.getDroneId();</span>
+<span class="pc bpc" id="L771" title="1 of 2 branches missed.">            if (droneId == null)</span>
+            {
+<span class="nc" id="L773">                continue;</span>
+            }
+
+<span class="fc" id="L776">            ArrayList&lt;Deliveries&gt; deliveriesList = dronePath.getDeliveries();</span>
+
+            // Filter out the “return to base” entry (deliveryId == null)
+<span class="fc" id="L779">            ArrayList&lt;Deliveries&gt; realDeliveries = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L780" title="All 2 branches covered.">            for (Deliveries d : deliveriesList)</span>
+            {
+<span class="pc bpc" id="L782" title="1 of 4 branches missed.">                if (d != null &amp;&amp; d.getDeliveryId() != null)</span>
+                {
+<span class="fc" id="L784">                    realDeliveries.add(d);</span>
+                }
+<span class="fc" id="L786">            }</span>
+
+<span class="pc bpc" id="L788" title="1 of 2 branches missed.">            if (realDeliveries.isEmpty())</span>
+            {
+<span class="nc" id="L790">                continue; // nothing to log for this drone</span>
+            }
+
+            // base is the first point of the flight path of the first real delivery
+<span class="fc" id="L794">            Deliveries firstDel = realDeliveries.getFirst();</span>
+<span class="pc bpc" id="L795" title="2 of 4 branches missed.">            if (firstDel.getFlightPath() == null || firstDel.getFlightPath().isEmpty())</span>
+            {
+<span class="nc" id="L797">                continue;</span>
+            }
+
+<span class="fc" id="L800">            Position servicePointPosition = firstDel.getFlightPath().getFirst();</span>
+
+<span class="fc" id="L802">            ServicePoint servicePoint = getServicePoint(servicePointPosition, servicePoints);</span>
+<span class="pc bpc" id="L803" title="2 of 4 branches missed.">            if (servicePoint == null || servicePoint.getLocation() == null)</span>
+            {
+<span class="nc" id="L805">                continue;</span>
+            }
+
+<span class="fc" id="L808">            int numberOfDeliveries = realDeliveries.size();</span>
+<span class="pc bpc" id="L809" title="1 of 2 branches missed.">            if (numberOfDeliveries &lt;= 0)</span>
+            {
+<span class="nc" id="L811">                continue;</span>
+            }
+<span class="fc" id="L813">            double costPerDelivery = returnedPath.getTotalCost() / numberOfDeliveries;</span>
+
+<span class="fc bfc" id="L815" title="All 2 branches covered.">            for (Deliveries deliveries : realDeliveries) {</span>
+
+<span class="fc" id="L817">                Integer id = deliveries.getDeliveryId();</span>
+<span class="pc bpc" id="L818" title="1 of 2 branches missed.">                if (id == null)</span>
+                {
+<span class="nc" id="L820">                    continue;</span>
+                }
+
+<span class="fc" id="L823">                MedicineDispatchRequest query = getMedicineDispatchRequestById(id, queries);</span>
+<span class="pc bpc" id="L824" title="2 of 4 branches missed.">                if (query == null || query.getDelivery() == null)</span>
+                {
+<span class="nc" id="L826">                    continue;</span>
+                }
+
+<span class="fc" id="L829">                Requirements req = query.getRequirements();</span>
+
+<span class="fc" id="L831">                LogEntry logEntry = new LogEntry();</span>
+<span class="fc" id="L832">                logEntry.setDeliveryId(id);</span>
+
+<span class="fc" id="L834">                logEntry.setDroneId(droneId);</span>
+
+<span class="fc" id="L836">                logEntry.setServicePointLng(servicePoint.getLocation().getLng());</span>
+<span class="fc" id="L837">                logEntry.setServicePointLat(servicePoint.getLocation().getLat());</span>
+<span class="fc" id="L838">                logEntry.setServicePointId(servicePoint.getId());</span>
+<span class="fc" id="L839">                logEntry.setServicePointName(servicePoint.getName());</span>
+
+<span class="fc" id="L841">                logEntry.setDeliveryPointLng(query.getDelivery().getLng());</span>
+<span class="fc" id="L842">                logEntry.setDeliveryPointLat(query.getDelivery().getLat());</span>
+<span class="fc" id="L843">                logEntry.setDeliveryDate(query.getDate());</span>
+<span class="fc" id="L844">                logEntry.setDeliveryTime(query.getTime());</span>
+
+<span class="fc" id="L846">                logEntry.setActualCost(costPerDelivery);</span>
+
+<span class="pc bpc" id="L848" title="1 of 2 branches missed.">                if (req != null)</span>
+                {
+<span class="fc" id="L850">                    logEntry.setRequiredCapacity(req.getCapacity());</span>
+<span class="fc" id="L851">                    logEntry.setCoolingRequired(req.getCooling());</span>
+<span class="fc" id="L852">                    logEntry.setHeatingRequired(req.getHeating());</span>
+                }
+
+<span class="fc" id="L855">                log(logEntry);</span>
+<span class="fc" id="L856">            }</span>
+<span class="fc" id="L857">        }</span>
+<span class="fc" id="L858">    }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

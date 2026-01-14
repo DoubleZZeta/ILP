@@ -592,7 +592,7 @@ public class Utility
     {
         // Set up
         int expansions = 0;
-        int maxExpansions = 100000000;
+        int maxExpansions = 1000000;
         PriorityQueue<Node> minHeap = new PriorityQueue<>();
         Set<String> visited = new HashSet<>();
         minHeap.add(new Node( null, start,0.0,calculateDistance(start,end)));

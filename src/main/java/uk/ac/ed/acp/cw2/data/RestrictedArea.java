@@ -12,7 +12,6 @@ import java.util.ArrayList;
 public class RestrictedArea
 {
     private String name;
-    //TODO do I really need this id? If not I can just use region ...
     private Integer id;
     private ArrayList<Position> vertices;
 }
