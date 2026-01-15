@@ -1,0 +1,45 @@
+name: Run Tests with Jacoco Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Java 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Run R1Tests with Jacoco
+      run: mvn clean test -Dtest=R1Tests
+    
+    - name: Save R1Tests coverage
+      run: cp -r target/site/jacoco target/site/jacoco-r1
+    
+    - name: Run R2Tests with Jacoco
+      run: mvn clean test -Dtest=R2Tests
+    
+    - name: Save R2Tests coverage
+      run: cp -r target/site/jacoco target/site/jacoco-r2
+    
+    - name: Run R3Tests with Jacoco
+      run: mvn clean test -Dtest=R3Tests
+    
+    - name: Save R3Tests coverage
+      run: cp -r target/site/jacoco target/site/jacoco-r3
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./target/jacoco.exec
+        flags: unittests
+        name: codecov-umbrella

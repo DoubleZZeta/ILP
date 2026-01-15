@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RestServiceImplementation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">IlpTutorial1</a> &gt; <a href="index.source.html" class="el_package">uk.ac.ed.acp.cw2.service</a> &gt; <span class="el_source">RestServiceImplementation.java</span></div><h1>RestServiceImplementation.java</h1><pre class="source lang-java linenums">package uk.ac.ed.acp.cw2.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import uk.ac.ed.acp.cw2.data.*;
+import uk.ac.ed.acp.cw2.utility.Utility;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.*;
+
+//Service interface implementation
+/**
+ * Service Implementation class that implements the service interface,
+ * providing actual functionality.
+ */
+@Service
+public class RestServiceImplementation implements RestService
+{
+
+    private final Utility utility;
+<span class="fc" id="L22">    private static final Double unitLength = 0.00015;</span>
+
+    //Dependency inject the utility clas
+    @Autowired
+    public RestServiceImplementation(final Utility utility)
+<span class="fc" id="L27">    {</span>
+<span class="fc" id="L28">        this.utility = utility;</span>
+<span class="fc" id="L29">    }</span>
+
+    @Override
+    public Double distanceTo(PositionsRequest Request)
+    {
+<span class="nc" id="L34">        Position position1 = Request.getPosition1();</span>
+<span class="nc" id="L35">        Position position2 = Request.getPosition2();</span>
+
+<span class="nc" id="L37">        return utility.calculateDistance(position1,position2);</span>
+    }
+
+    @Override
+    public boolean isCloseTo(PositionsRequest Request)
+    {
+<span class="nc" id="L43">        Position position1 = Request.getPosition1();</span>
+<span class="nc" id="L44">        Position position2 = Request.getPosition2();</span>
+
+<span class="nc" id="L46">        Double distance = utility.calculateDistance(position1,position2);</span>
+
+        //If the distance is less than 0.00015, return true
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        return distance.compareTo(unitLength) &lt; 0;</span>
+    }
+
+    @Override
+    public String nextPosition(PositionAngleRequest Request) {
+<span class="nc" id="L54">        Position start = Request.getStart();</span>
+<span class="nc" id="L55">        Double angle = Request.getAngle();</span>
+
+        //Calculate the new position using trigonometric functions
+<span class="nc" id="L58">        angle = Math.toRadians(angle);</span>
+<span class="nc" id="L59">        Double lng = unitLength * Math.cos(angle) + start.getLng();</span>
+<span class="nc" id="L60">        Double lat = unitLength * Math.sin(angle) + start.getLat();</span>
+
+        //Make sure that the return lng lat pair is in five decimal places
+<span class="nc" id="L63">        return String.format(&quot;{ \&quot;lng\&quot;: %.5f, \&quot;lat\&quot;: %.5f }&quot;, lng, lat);</span>
+    }
+
+    @Override
+    public boolean isInRegion(PositionRegionRequest Request)
+    {
+        // Moved the logic to utility for cw2
+<span class="nc" id="L70">        return utility.isInRegion(Request);</span>
+    }
+
+    @Override
+    public ArrayList&lt;String&gt; droneWithCooling(ArrayList&lt;Drone&gt; drones, boolean state)
+    {
+<span class="nc" id="L76">        ArrayList&lt;String&gt; dronesWithCooling = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (Drone drone : drones) {</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            if (drone.getCapability().getCooling() == state)</span>
+            {
+<span class="nc" id="L80">                dronesWithCooling.add(drone.getId());</span>
+            }
+<span class="nc" id="L82">        }</span>
+<span class="nc" id="L83">        return dronesWithCooling;</span>
+    }
+
+    @Override
+    public Drone droneDetails(ArrayList&lt;Drone&gt; drones, String droneId)
+    {
+<span class="nc" id="L89">        Drone droneWithId = null;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        for(Drone drone : drones)</span>
+        {
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if (Objects.equals(drone.getId(), droneId))</span>
+            {
+<span class="nc" id="L94">                droneWithId = drone;</span>
+<span class="nc" id="L95">                break;</span>
+            }
+<span class="nc" id="L97">        }</span>
+<span class="nc" id="L98">        return droneWithId;</span>
+    }
+
+    @Override
+    public  ArrayList&lt;String&gt; query(ArrayList&lt;Drone&gt; drones, ArrayList&lt;QueryRequest&gt; queries)
+    {
+        String attribute;
+        String value;
+        String operator;
+
+<span class="nc" id="L108">        ArrayList&lt;String&gt; droneIds = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        for (Drone drone : drones)</span>
+        {
+<span class="nc" id="L112">            boolean matchesAll = true;</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            for (QueryRequest queryRequest : queries)</span>
+            {
+<span class="nc" id="L115">                attribute = queryRequest.getAttribute();</span>
+<span class="nc" id="L116">                value = queryRequest.getValue();</span>
+<span class="nc" id="L117">                operator = queryRequest.getOperator();</span>
+
+<span class="nc" id="L119">                Object droneAttributeValue = utility.getDroneAttributeValue(drone, attribute);</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                if(!utility.checkDroneMatchesQuery(droneAttributeValue, value ,operator))</span>
+                {
+<span class="nc" id="L122">                    matchesAll = false;</span>
+<span class="nc" id="L123">                    break;</span>
+                }
+<span class="nc" id="L125">            }</span>
+
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            if (matchesAll)</span>
+            {
+<span class="nc" id="L129">                 droneIds.add(drone.getId());</span>
+            }
+<span class="nc" id="L131">        }</span>
+
+<span class="nc" id="L133">        return droneIds;</span>
+    }
+
+    @Override
+    public ArrayList&lt;String&gt; queryAvailableDrones(ArrayList&lt;Drone&gt; drones, ArrayList&lt;ServicePointDrones&gt; servicePointDrones, ArrayList&lt;ServicePoint&gt; servicePoints, ArrayList&lt;MedicineDispatchRequest&gt; queries)
+    {
+        String id;
+        LocalDate date;
+        LocalTime time;
+        Position droneBase;
+
+<span class="nc" id="L144">        ArrayList&lt;String&gt; droneIds = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L145">        Map&lt;String, ArrayList&lt;Availability&gt;&gt; availabilityMap = utility.getAvailabilityMap(servicePointDrones);</span>
+
+
+<span class="nc bnc" id="L148" title="All 2 branches missed.">            for  (Drone drone : drones)</span>
+            {
+<span class="nc" id="L150">                id = drone.getId();</span>
+
+<span class="nc" id="L152">                boolean matchesAll = true;</span>
+                boolean droneIsAvailable;
+                boolean droneMeetsRequirements;
+
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                for (MedicineDispatchRequest query : queries)</span>
+                {
+<span class="nc" id="L158">                    date = query.getDate();</span>
+<span class="nc" id="L159">                    time = query.getTime();</span>
+<span class="nc" id="L160">                    droneBase = utility.getServicePointPosition(id, servicePointDrones,servicePoints, date, time);</span>
+
+<span class="nc" id="L162">                    droneIsAvailable = utility.checkDroneIsAvailable(drone,query, availabilityMap);</span>
+<span class="nc" id="L163">                    droneMeetsRequirements = utility.checkDroneMeetsRequirements(drone, query, droneBase);</span>
+
+<span class="nc bnc" id="L165" title="All 4 branches missed.">                    if (!(droneIsAvailable &amp;&amp; droneMeetsRequirements))</span>
+                    {
+<span class="nc" id="L167">                        matchesAll = false;</span>
+<span class="nc" id="L168">                        break;</span>
+                    }
+<span class="nc" id="L170">                }</span>
+
+<span class="nc bnc" id="L172" title="All 2 branches missed.">                if (matchesAll)</span>
+                {
+<span class="nc" id="L174">                    droneIds.add(drone.getId());</span>
+                }
+
+<span class="nc" id="L177">            }</span>
+
+
+<span class="nc" id="L180">        return droneIds;</span>
+    }
+
+    @Override
+    public ReturnedPath calcDeliveryPath(ArrayList&lt;MedicineDispatchRequest&gt; queries, ArrayList&lt;ServicePoint&gt; servicePoints, ArrayList&lt;RestrictedArea&gt; restrictedAreas, ArrayList&lt;Drone&gt; drones, ArrayList&lt;ServicePointDrones&gt; servicePointsDrones)
+    {
+<span class="fc" id="L186">        Set&lt;LocalDate&gt; dates = utility.getAllDates(queries);</span>
+<span class="fc" id="L187">        List&lt;LocalDate&gt; sortedDates = dates.stream().sorted().toList();</span>
+
+<span class="fc" id="L189">        int totalMoves = 0;</span>
+<span class="fc" id="L190">        double totalCost = 0;</span>
+<span class="fc" id="L191">        ReturnedPath returnedPath = new ReturnedPath(0.0,0, new ArrayList&lt;&gt;());</span>
+
+        // Do this date by date, since no cross date delivery allowed
+<span class="fc bfc" id="L194" title="All 2 branches covered.">        for (LocalDate date: sortedDates)</span>
+        {
+            // Sort the deliveries based on the required arrival time of the orders
+<span class="fc" id="L197">            ArrayList&lt;MedicineDispatchRequest&gt; queryByDate = utility.getMedicineDispatchByDate(queries, date);</span>
+<span class="fc" id="L198">            queryByDate.sort(Comparator.comparing(MedicineDispatchRequest::getTime));</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">            for (Drone drone : drones)</span>
+            {
+                boolean progress;
+                do
+                {
+<span class="fc" id="L204">                    progress = false;</span>
+<span class="fc" id="L205">                    Capability droneCapability = drone.getCapability();</span>
+<span class="fc" id="L206">                    double currentDroneCapacity = droneCapability.getCapacity();</span>
+<span class="fc" id="L207">                    int currentDroneMoves = 0;</span>
+<span class="fc" id="L208">                    int currentNumberOfDeliveries = 0;</span>
+                    double currentCostPerDelivery;
+<span class="fc" id="L210">                    double currentLandingAndTakeOffCost = droneCapability.getCostInitial() + droneCapability.getCostFinal();</span>
+<span class="fc" id="L211">                    boolean currentDroneCooling = droneCapability.getCooling();</span>
+<span class="fc" id="L212">                    boolean currentDroneHeating = droneCapability.getHeating();</span>
+<span class="fc" id="L213">                    Position currentDroneBase = null;</span>
+<span class="fc" id="L214">                    ArrayList&lt;Position&gt; currentDronePath = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L215">                    ArrayList&lt;MedicineDispatchRequest&gt; delivered = new ArrayList&lt;&gt;();</span>
+                    Position start;
+                    Position end;
+
+<span class="fc bfc" id="L219" title="All 2 branches covered.">                    for(MedicineDispatchRequest query : queryByDate)</span>
+                    {
+<span class="fc" id="L221">                        Requirements queryRequirements = query.getRequirements();</span>
+<span class="fc" id="L222">                        LocalTime time = query.getTime();</span>
+<span class="fc" id="L223">                        Position droneBase = utility.getServicePointPosition(drone.getId(), servicePointsDrones, servicePoints, date, time);</span>
+
+                        // Current drone is not available
+<span class="fc bfc" id="L226" title="All 2 branches covered.">                        if (droneBase == null)</span>
+                        {
+                            // Move to next drone
+<span class="fc" id="L229">                            continue;</span>
+                        }
+
+                        // If haven't fixed a base for this flight, lock it in
+<span class="pc bpc" id="L233" title="1 of 2 branches missed.">                        if (currentDroneBase == null)</span>
+                        {
+<span class="fc" id="L235">                            currentDroneBase = droneBase;</span>
+                        }
+<span class="nc bnc" id="L237" title="All 2 branches missed.">                        else if (!currentDroneBase.equals(droneBase))</span>
+                        {
+                            // This query would require starting from a different base,
+                            // so it can't belong to this particular string
+<span class="nc" id="L241">                            continue;</span>
+                        }
+
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">                        assert(currentDroneBase!=null); //assertion for R3, but already enforced by the code itself</span>
+
+
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">                        boolean canDeliver = !(currentDroneCapacity &lt; queryRequirements.getCapacity());</span>
+
+<span class="fc" id="L249">                        Boolean reqCooling = queryRequirements.getCooling();</span>
+<span class="pc bpc" id="L250" title="5 of 6 branches missed.">                        if (reqCooling != null &amp;&amp; reqCooling &amp;&amp; !currentDroneCooling)</span>
+                        {
+<span class="nc" id="L252">                            canDeliver = false;</span>
+                        }
+
+<span class="fc" id="L255">                        Boolean reqHeating = queryRequirements.getHeating();</span>
+<span class="pc bpc" id="L256" title="5 of 6 branches missed.">                        if (reqHeating != null &amp;&amp; reqHeating &amp;&amp; !currentDroneHeating)</span>
+                        {
+<span class="nc" id="L258">                            canDeliver = false;</span>
+                        }
+
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">                        if (canDeliver)</span>
+                        {
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">                            if(currentDronePath.isEmpty())</span>
+                            {
+<span class="fc" id="L265">                                start = droneBase;</span>
+                            }
+                            else
+                            {
+<span class="nc" id="L269">                                start = currentDronePath.getLast();</span>
+                            }
+<span class="fc" id="L271">                            end = query.getDelivery();</span>
+
+<span class="fc" id="L273">                            ArrayList&lt;Position&gt; toDeliver = utility.aStarSearch(start,end,restrictedAreas);</span>
+<span class="fc" id="L274">                            ArrayList&lt;Position&gt; toBase = utility.aStarSearch(end,droneBase,restrictedAreas);</span>
+
+<span class="pc bpc" id="L276" title="2 of 4 branches missed.">                            if (toDeliver.isEmpty() || toBase.isEmpty())</span>
+                            {
+                                // no valid path, treat as cannot deliver this query
+<span class="nc" id="L279">                                continue;</span>
+                            }
+
+                            // For hover
+<span class="fc" id="L283">                            toDeliver.add(toDeliver.getLast());</span>
+<span class="fc" id="L284">                            int movesTo = toDeliver.size()-1;</span>
+<span class="fc" id="L285">                            int movesBack = toBase.size()-1;</span>
+
+<span class="fc" id="L287">                            int estimatedCurrentDroneMoves = currentDroneMoves + (movesTo + movesBack);</span>
+<span class="fc" id="L288">                            int estimatedCurrentNumberOfDeliveries = currentNumberOfDeliveries + 1;</span>
+<span class="fc" id="L289">                            double estimatedCurrentFlightCost = currentLandingAndTakeOffCost + estimatedCurrentDroneMoves * droneCapability.getCostPerMove();</span>
+<span class="fc" id="L290">                            currentCostPerDelivery = estimatedCurrentFlightCost / estimatedCurrentNumberOfDeliveries;</span>
+
+<span class="pc bpc" id="L292" title="1 of 2 branches missed.">                            boolean lowerThanMaxMove = (estimatedCurrentDroneMoves &lt;= droneCapability.getMaxMoves());</span>
+<span class="pc bpc" id="L293" title="3 of 4 branches missed.">                            boolean lowerThanMaxCost = ((queryRequirements.getMaxCost() == null) || (currentCostPerDelivery &lt;= queryRequirements.getMaxCost()));</span>
+
+<span class="pc bpc" id="L295" title="2 of 4 branches missed.">                            if( lowerThanMaxMove &amp;&amp; lowerThanMaxCost )</span>
+                            {
+<span class="fc" id="L297">                                currentDroneMoves += movesTo;</span>
+<span class="fc" id="L298">                                currentNumberOfDeliveries += 1;</span>
+<span class="fc" id="L299">                                currentDroneCapacity -=  queryRequirements.getCapacity();</span>
+<span class="fc" id="L300">                                currentDronePath.addAll(toDeliver);</span>
+<span class="fc" id="L301">                                delivered.add(query);</span>
+
+<span class="fc" id="L303">                                totalMoves += movesTo;</span>
+
+<span class="fc" id="L305">                                utility.addDeliveriesToRetunedPath(drone.getId(),query.getId(),toDeliver,returnedPath);</span>
+                            }
+                        }
+
+<span class="fc" id="L309">                    }</span>
+                    // close flight if did anything
+<span class="fc bfc" id="L311" title="All 2 branches covered.">                    if (!currentDronePath.isEmpty())</span>
+                    {
+<span class="fc" id="L313">                        progress = true;</span>
+<span class="fc" id="L314">                        Position last = currentDronePath.getLast();</span>
+<span class="fc" id="L315">                        ArrayList&lt;Position&gt; back = utility.aStarSearch(last, currentDroneBase, restrictedAreas);</span>
+<span class="fc" id="L316">                        utility.addDeliveriesToRetunedPath(drone.getId(),null,back,returnedPath);</span>
+<span class="fc" id="L317">                        currentDroneMoves += back.size() - 1;</span>
+<span class="fc" id="L318">                        totalMoves += back.size() - 1;</span>
+<span class="fc" id="L319">                        totalCost += currentLandingAndTakeOffCost + currentDroneMoves * droneCapability.getCostPerMove();</span>
+<span class="fc" id="L320">                        queryByDate.removeAll(delivered);</span>
+
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">                        assert(droneCapability.getMaxMoves() &gt;= currentDroneMoves); // Assertion for LO1</span>
+
+                    }
+
+                }
+<span class="pc bpc" id="L327" title="1 of 4 branches missed.">                while(progress &amp;&amp; !queryByDate.isEmpty());</span>
+
+<span class="fc" id="L329">            }</span>
+
+<span class="fc" id="L331">        }</span>
+<span class="fc" id="L332">        returnedPath.setTotalCost(totalCost);</span>
+<span class="fc" id="L333">        returnedPath.setTotalMoves(totalMoves);</span>
+<span class="fc" id="L334">        utility.logReturnedPath(returnedPath,queries,servicePoints);</span>
+
+<span class="fc" id="L336">        return returnedPath;</span>
+    }
+
+    @Override
+    public GeoJson calcDeliveryPathAsGeoJson(ArrayList&lt;MedicineDispatchRequest&gt; queries, ArrayList&lt;ServicePoint&gt; servicePoints, ArrayList&lt;RestrictedArea&gt; restrictedAreas, ArrayList&lt;Drone&gt; drones, ArrayList&lt;ServicePointDrones&gt; servicePointDrones)
+    {
+<span class="nc" id="L342">        ReturnedPath returnedPath = calcDeliveryPath(queries, servicePoints, restrictedAreas, drones, servicePointDrones);</span>
+<span class="nc" id="L343">        GeoJson geoJson = new GeoJson(&quot;FeatureCollection&quot;,new ArrayList&lt;&gt;());</span>
+
+<span class="nc bnc" id="L345" title="All 2 branches missed.">        for(DronePath dronePath: returnedPath.getDronePaths())</span>
+        {
+<span class="nc bnc" id="L347" title="All 2 branches missed.">            for(Deliveries deliveries: dronePath.getDeliveries())</span>
+            {
+<span class="nc" id="L349">                Geometry geometry = new Geometry(&quot;LineString&quot;,new ArrayList&lt;&gt;());</span>
+<span class="nc bnc" id="L350" title="All 2 branches missed.">                for (Position position: deliveries.getFlightPath())</span>
+                {
+<span class="nc" id="L352">                    ArrayList&lt;Double&gt; lngLat = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L353">                    lngLat.add(position.getLng());</span>
+<span class="nc" id="L354">                    lngLat.add(position.getLat());</span>
+<span class="nc" id="L355">                    geometry.getCoordinates().add(lngLat);</span>
+<span class="nc" id="L356">                }</span>
+<span class="nc" id="L357">                Feature feature = new Feature(&quot;Feature&quot;,new HashMap&lt;&gt;(),geometry);</span>
+<span class="nc" id="L358">                geoJson.getFeatures().add(feature);</span>
+
+<span class="nc" id="L360">            }</span>
+
+<span class="nc" id="L362">        }</span>
+<span class="nc" id="L363">        return geoJson;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

@@ -201,6 +201,11 @@ public class R1Tests
     @Test
     public void P1Test() throws Exception
     {
+<<<<<<< HEAD
+=======
+        // Description: The order is placed 200 moves from the service point
+
+>>>>>>> 5365566ebb5c426dc62c9641b83acc4aacc3bfa1
         // Get maxMoves from the mocked drone
         int droneMaxMoves = getMaxMoves("1");
 
@@ -235,7 +240,11 @@ public class R1Tests
 
         ReturnedPath returnedPath = objectMapper.readValue(response, ReturnedPath.class);
 
+<<<<<<< HEAD
         assert(returnedPath.getTotalMoves() <= droneMaxMoves);
+=======
+        assert(returnedPath.getTotalMoves() < droneMaxMoves);
+>>>>>>> 5365566ebb5c426dc62c9641b83acc4aacc3bfa1
     }
 
     @Test
@@ -339,7 +348,13 @@ public class R1Tests
                 }
                 else
                 {
+<<<<<<< HEAD
                     assert(moves <= droneMaxMoves);
+=======
+                    moves += delivery.getFlightPath().size()-1;
+                    assert(moves <= droneMaxMoves);
+                    System.out.println(moves);
+>>>>>>> 5365566ebb5c426dc62c9641b83acc4aacc3bfa1
                     moves = 0;
                 }
             }

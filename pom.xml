@@ -97,6 +97,7 @@
                     </environmentVariables>
                 </configuration>
             </plugin>
+<<<<<<< HEAD
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -131,6 +132,8 @@
                     </argLine>
                 </configuration>
             </plugin>
+=======
+>>>>>>> 5365566ebb5c426dc62c9641b83acc4aacc3bfa1
 
         </plugins>
     </build>
