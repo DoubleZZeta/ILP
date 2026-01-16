@@ -1,0 +1,4 @@
+#Fri Jan 16 17:38:12 GMT 2026
+configuration*?=BFF07E52ECF3D5CCB1B419BD9802DC22FF0D8B93
+module-resource*?\:checkstyle-suppressions.xml=D3FC27C9A72C5B7BC96ACC114D581757B132A378
+module-resource*?\:checkstyle-xpath-suppressions.xml=A916E6F3E4EA0C3ADCA57E026711C415E9231698

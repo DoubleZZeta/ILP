@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: uk.ac.ed.acp.cw2.integrationCW1.ControllerTests
+-------------------------------------------------------------------------------
+Tests run: 43, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.416 s -- in uk.ac.ed.acp.cw2.integrationCW1.ControllerTests

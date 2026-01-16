@@ -31,8 +31,8 @@ public class Utility
     private static final double error = 1e-9;
     private final ObjectMapper objectMapper;
 
-    public Utility(ObjectMapper objectMapper)
-<span class="fc" id="L35">    {</span>
+<span class="fc" id="L34">    public Utility(ObjectMapper objectMapper)</span>
+    {
 <span class="fc" id="L36">        this.objectMapper = objectMapper;</span>
 <span class="fc" id="L37">    }</span>
 
@@ -45,8 +45,8 @@ public class Utility
         private Double gScore;
         private Double fScore;
 
-        public Node(Node parent, Position position, Double gScore, Double heuristic)
-<span class="fc" id="L49">        {</span>
+<span class="fc" id="L48">        public Node(Node parent, Position position, Double gScore, Double heuristic)</span>
+        {
 <span class="fc" id="L50">            this.parent = parent;</span>
 <span class="fc" id="L51">            this.position = position;</span>
 <span class="fc" id="L52">            this.gScore = gScore;</span>
@@ -85,113 +85,113 @@ public class Utility
     public ArrayList&lt;PositionsRequest&gt; getRegionEdges(Region region)
     {
         // don't mutate the original list by copying
-<span class="nc" id="L88">        ArrayList&lt;Position&gt; vertices = new ArrayList&lt;&gt;(region.getVertices());</span>
+<span class="fc" id="L88">        ArrayList&lt;Position&gt; vertices = new ArrayList&lt;&gt;(region.getVertices());</span>
 
         //Append the first vertex to the end to ensure the last edge closes the region
-<span class="nc" id="L91">        vertices.add(vertices.getFirst());</span>
-<span class="nc" id="L92">        ArrayList&lt;PositionsRequest&gt; edges = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L91">        vertices.add(vertices.getFirst());</span>
+<span class="fc" id="L92">        ArrayList&lt;PositionsRequest&gt; edges = new ArrayList&lt;&gt;();</span>
 
         //Make positon pairs of the adjacent vertices
-<span class="nc bnc" id="L95" title="All 2 branches missed.">        for (int i = 0; i &lt; vertices.size() - 1; i++)</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">        for (int i = 0; i &lt; vertices.size() - 1; i++)</span>
         {
-<span class="nc" id="L97">            Position start = vertices.get(i);</span>
-<span class="nc" id="L98">            Position end = vertices.get(i + 1);</span>
-<span class="nc" id="L99">            edges.add(new PositionsRequest(start, end));</span>
+<span class="fc" id="L97">            Position start = vertices.get(i);</span>
+<span class="fc" id="L98">            Position end = vertices.get(i + 1);</span>
+<span class="fc" id="L99">            edges.add(new PositionsRequest(start, end));</span>
         }
 
-<span class="nc" id="L102">        return edges;</span>
+<span class="fc" id="L102">        return edges;</span>
     }
 
     //Checking if the given position is on an edge of the region
     public boolean isPositionOnEdge(Position vertex, PositionsRequest edge)
     {
-<span class="nc" id="L108">        Double x1 = edge.getPosition1().getLng();</span>
-<span class="nc" id="L109">        Double y1 = edge.getPosition1().getLat();</span>
-<span class="nc" id="L110">        Double x2 = edge.getPosition2().getLng();</span>
-<span class="nc" id="L111">        Double y2 = edge.getPosition2().getLat();</span>
-<span class="nc" id="L112">        Double xv = vertex.getLng();</span>
-<span class="nc" id="L113">        Double yv = vertex.getLat();</span>
+<span class="fc" id="L108">        Double x1 = edge.getPosition1().getLng();</span>
+<span class="fc" id="L109">        Double y1 = edge.getPosition1().getLat();</span>
+<span class="fc" id="L110">        Double x2 = edge.getPosition2().getLng();</span>
+<span class="fc" id="L111">        Double y2 = edge.getPosition2().getLat();</span>
+<span class="fc" id="L112">        Double xv = vertex.getLng();</span>
+<span class="fc" id="L113">        Double yv = vertex.getLat();</span>
 
         //Gradient check
-<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (Math.abs((y2-y1)*(xv-x1) - (yv-y1)*(x2-x1)) &lt;= 1e-9)</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">        if (Math.abs((y2-y1)*(xv-x1) - (yv-y1)*(x2-x1)) &lt;= 1e-9)</span>
         {
             //Boundary checks
-<span class="nc bnc" id="L119" title="All 4 branches missed.">            if (Math.min(y1, y2) &lt;= yv &amp;&amp; yv &lt;= Math.max(y1, y2))</span>
+<span class="fc bfc" id="L119" title="All 4 branches covered.">            if (Math.min(y1, y2) &lt;= yv &amp;&amp; yv &lt;= Math.max(y1, y2))</span>
             {
-<span class="nc bnc" id="L121" title="All 4 branches missed.">                if (Math.min(x1, x2) &lt;= xv &amp;&amp; xv &lt;= Math.max(x1, x2))</span>
+<span class="pc bpc" id="L121" title="1 of 4 branches missed.">                if (Math.min(x1, x2) &lt;= xv &amp;&amp; xv &lt;= Math.max(x1, x2))</span>
                 {
-<span class="nc" id="L123">                    return true;</span>
+<span class="fc" id="L123">                    return true;</span>
                 }
             }
         }
-<span class="nc" id="L127">        return false;</span>
+<span class="fc" id="L127">        return false;</span>
     }
 
     //Check if the horizontal ray is intersecting with an edge of the region
     public boolean isEdgeIntersectWithRay(Position vertex, PositionsRequest edge)
     {
-<span class="nc" id="L133">        Double x1 = edge.getPosition1().getLng();</span>
-<span class="nc" id="L134">        Double y1 = edge.getPosition1().getLat();</span>
-<span class="nc" id="L135">        Double x2 = edge.getPosition2().getLng();</span>
-<span class="nc" id="L136">        Double y2 = edge.getPosition2().getLat();</span>
-<span class="nc" id="L137">        Double xv = vertex.getLng();</span>
-<span class="nc" id="L138">        Double yv = vertex.getLat();</span>
+<span class="fc" id="L133">        Double x1 = edge.getPosition1().getLng();</span>
+<span class="fc" id="L134">        Double y1 = edge.getPosition1().getLat();</span>
+<span class="fc" id="L135">        Double x2 = edge.getPosition2().getLng();</span>
+<span class="fc" id="L136">        Double y2 = edge.getPosition2().getLat();</span>
+<span class="fc" id="L137">        Double xv = vertex.getLng();</span>
+<span class="fc" id="L138">        Double yv = vertex.getLat();</span>
 
         //We don't take the horizontal line into consideration
         //Also, if the vertex is on the right of the right most point of the edge then there is no intersection
-<span class="nc bnc" id="L142" title="All 4 branches missed.">        if(Objects.equals(y1, y2) || Math.max(x1,x2) &lt;= xv)</span>
+<span class="fc bfc" id="L142" title="All 4 branches covered.">        if(Objects.equals(y1, y2) || Math.max(x1,x2) &lt;= xv)</span>
         {
-<span class="nc" id="L144">            return false;</span>
+<span class="fc" id="L144">            return false;</span>
         }
 
         //Then consider when the ray is between two points of the edge
-<span class="nc bnc" id="L148" title="All 4 branches missed.">        if(Math.min(y1,y2) &lt;= yv &amp;&amp; yv &lt;= Math.max(y1,y2))</span>
+<span class="fc bfc" id="L148" title="All 4 branches covered.">        if(Math.min(y1,y2) &lt;= yv &amp;&amp; yv &lt;= Math.max(y1,y2))</span>
         {
             //In the case where line is vertical, there must be an intersection
-<span class="nc bnc" id="L151" title="All 2 branches missed.">            if(Objects.equals(x1, x2))</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">            if(Objects.equals(x1, x2))</span>
             {
-<span class="nc" id="L153">                return true;</span>
+<span class="fc" id="L153">                return true;</span>
             }
             //Otherwise we calculate the x coordinate of the intersection
             else
             {
-<span class="nc" id="L158">                double m = (y2-y1)/(x2-x1);</span>
-<span class="nc" id="L159">                double xi = (yv - y1)/m + x1;</span>
-<span class="nc bnc" id="L160" title="All 2 branches missed.">                return xv &lt; xi;</span>
+<span class="fc" id="L158">                double m = (y2-y1)/(x2-x1);</span>
+<span class="fc" id="L159">                double xi = (yv - y1)/m + x1;</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">                return xv &lt; xi;</span>
             }
         }
 
         //If the ray is lower or higher than the edge, return false
-<span class="nc" id="L165">        return false;</span>
+<span class="fc" id="L165">        return false;</span>
     }
 
     public boolean isInRegion(PositionRegionRequest Request)
     {
         //Ray casting algorithm
-<span class="nc" id="L171">        Position position = Request.getPosition();</span>
-<span class="nc" id="L172">        Region region = Request.getRegion();</span>
+<span class="fc" id="L171">        Position position = Request.getPosition();</span>
+<span class="fc" id="L172">        Region region = Request.getRegion();</span>
 
         //Number of intersection between the ray and the region edges
-<span class="nc" id="L175">        int count = 0;</span>
-<span class="nc" id="L176">        ArrayList&lt;PositionsRequest&gt; edges = getRegionEdges(region);</span>
+<span class="fc" id="L175">        int count = 0;</span>
+<span class="fc" id="L176">        ArrayList&lt;PositionsRequest&gt; edges = getRegionEdges(region);</span>
 
         //Iterate through all edges
-<span class="nc bnc" id="L179" title="All 2 branches missed.">        for(PositionsRequest edge : edges)</span>
+<span class="fc bfc" id="L179" title="All 2 branches covered.">        for(PositionsRequest edge : edges)</span>
         {
             //If the position is on the edge of the region, return true directly
-<span class="nc bnc" id="L182" title="All 2 branches missed.">            if (isPositionOnEdge(position,edge))</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">            if (isPositionOnEdge(position,edge))</span>
             {
-<span class="nc" id="L184">                return true;</span>
+<span class="fc" id="L184">                return true;</span>
             }
             //Else check if the ray intersect with the edge
-<span class="nc bnc" id="L187" title="All 2 branches missed.">            else if(isEdgeIntersectWithRay(position, edge))</span>
+<span class="fc bfc" id="L187" title="All 2 branches covered.">            else if(isEdgeIntersectWithRay(position, edge))</span>
             {
-<span class="nc" id="L189">                count++;</span>
+<span class="fc" id="L189">                count++;</span>
             }
-<span class="nc" id="L191">        }</span>
+        }
 
         //If the number of intersection is odd, then the position is inside the region
-<span class="nc bnc" id="L194" title="All 2 branches missed.">        return count % 2 != 0;</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">        return count % 2 != 0;</span>
     }
 
     // Called by the main loop, try the get the attribute value based on the string
@@ -252,7 +252,7 @@ public class Utility
 <span class="nc bnc" id="L252" title="All 3 branches missed.">            return switch (operator)</span>
             {
 <span class="nc bnc" id="L254" title="All 2 branches missed.">                case &quot;=&quot; -&gt; valueBoolean == droneAttributeValueBoolean;</span>
-<span class="nc bnc" id="L255" title="All 2 branches missed.">                case &quot;!=&quot; -&gt; valueBoolean != droneAttributeValueBoolean;</span>
+<span class="nc" id="L255">                case &quot;!=&quot; -&gt; valueBoolean != droneAttributeValueBoolean;</span>
 <span class="nc" id="L256">                default -&gt; false;</span>
             };
         }
@@ -280,8 +280,8 @@ public class Utility
 <span class="nc" id="L280">                availabilityMap</span>
 <span class="nc" id="L281">                        .computeIfAbsent(id, k -&gt; new ArrayList&lt;&gt;())</span>
 <span class="nc" id="L282">                        .addAll(da.getAvailability());</span>
-<span class="nc" id="L283">            }</span>
-<span class="nc" id="L284">        }</span>
+            }
+        }
 <span class="nc" id="L285">        return availabilityMap;</span>
     }
 
@@ -310,7 +310,7 @@ public class Utility
 <span class="nc bnc" id="L310" title="All 2 branches missed.">        if (droneBase == null)</span>
         {
 <span class="nc" id="L312">            result = false;</span>
-        }
+<span class="nc" id="L313">        }</span>
         else
         {
 <span class="nc" id="L316">            double distance = calculateDistance(query.getDelivery(), droneBase) * 2;</span>
@@ -352,7 +352,7 @@ public class Utility
 <span class="nc bnc" id="L352" title="All 2 branches missed.">            if (date != null)</span>
             {
 <span class="nc bnc" id="L354" title="All 2 branches missed.">                dayOfWeekMatches = (date.getDayOfWeek() == availability.getDayOfWeek());</span>
-            }
+<span class="nc" id="L355">            }</span>
             else
             {
 <span class="nc" id="L358">                dayOfWeekMatches = true;</span>
@@ -361,7 +361,7 @@ public class Utility
 <span class="nc bnc" id="L361" title="All 2 branches missed.">            if (time != null)</span>
             {
 <span class="nc bnc" id="L363" title="All 4 branches missed.">                timeMatches = !time.isBefore(availability.getFrom()) &amp;&amp; !time.isAfter(availability.getUntil());</span>
-            }
+<span class="nc" id="L364">            }</span>
             else
             {
 <span class="nc" id="L367">                timeMatches = true;</span>
@@ -372,7 +372,7 @@ public class Utility
 <span class="nc" id="L372">                result = true;</span>
 <span class="nc" id="L373">                break;</span>
             }
-<span class="nc" id="L375">        }</span>
+        }
 <span class="nc" id="L376">        return  result;</span>
     }
 
@@ -382,7 +382,7 @@ public class Utility
 <span class="fc bfc" id="L382" title="All 2 branches covered.">        for (MedicineDispatchRequest query: quires)</span>
         {
 <span class="fc" id="L384">            dates.add(query.getDate());</span>
-<span class="fc" id="L385">        }</span>
+        }
 <span class="fc" id="L386">        return dates;</span>
     }
 
@@ -395,7 +395,7 @@ public class Utility
             {
 <span class="fc" id="L396">                medicineDispatchRequestsByDate.add(query);</span>
             }
-<span class="fc" id="L398">        }</span>
+        }
 <span class="fc" id="L399">        return medicineDispatchRequestsByDate;</span>
     }
 
@@ -420,18 +420,18 @@ public class Utility
 <span class="fc" id="L420">                                break;</span>
                             }
                         }
-<span class="fc" id="L423">                    }</span>
+                    }
                 }
 <span class="pc bpc" id="L425" title="1 of 2 branches missed.">                if (servicePointId != -1)</span>
                 {
 <span class="fc" id="L427">                    break;</span>
                 }
-<span class="nc" id="L429">            }</span>
+            }
 <span class="pc bpc" id="L430" title="1 of 2 branches missed.">            if (servicePointId != -1)</span>
             {
 <span class="fc" id="L432">                break;</span>
             }
-<span class="nc" id="L434">        }</span>
+        }
 
 <span class="fc" id="L436">        Position servicePointPosition = null;</span>
 <span class="fc bfc" id="L437" title="All 2 branches covered.">        if  (servicePointId != -1)</span>
@@ -443,7 +443,7 @@ public class Utility
 <span class="fc" id="L443">                    servicePointPosition = servicePoint.getLocation();</span>
 <span class="fc" id="L444">                    break;</span>
                 }
-<span class="fc" id="L446">            }</span>
+            }
         }
 <span class="fc" id="L448">        return servicePointPosition;</span>
     }
@@ -460,7 +460,7 @@ public class Utility
 <span class="fc" id="L460">                dronePath.getDeliveries().add(new Deliveries(deliveryId, delivery));</span>
 <span class="fc" id="L461">                break;</span>
             }
-<span class="nc" id="L463">        }</span>
+        }
 
 <span class="fc bfc" id="L465" title="All 2 branches covered.">        if(!droneIdStored)</span>
         {
@@ -473,78 +473,78 @@ public class Utility
 <span class="fc" id="L473">    }</span>
 
     private double orient(Position a, Position b, Position c) {
-<span class="nc" id="L476">        double x1 = b.getLng() - a.getLng();</span>
-<span class="nc" id="L477">        double y1 = b.getLat() - a.getLat();</span>
-<span class="nc" id="L478">        double x2 = c.getLng() - a.getLng();</span>
-<span class="nc" id="L479">        double y2 = c.getLat() - a.getLat();</span>
-<span class="nc" id="L480">        return x1 * y2 - y1 * x2;</span>
+<span class="fc" id="L476">        double x1 = b.getLng() - a.getLng();</span>
+<span class="fc" id="L477">        double y1 = b.getLat() - a.getLat();</span>
+<span class="fc" id="L478">        double x2 = c.getLng() - a.getLng();</span>
+<span class="fc" id="L479">        double y2 = c.getLat() - a.getLat();</span>
+<span class="fc" id="L480">        return x1 * y2 - y1 * x2;</span>
     }
 
     //using error to prevent floating point error
     private boolean onSegment(Position a, Position b, Position c) {
         // check if c is between a and b (inclusive)
-<span class="nc" id="L486">        double minLng = Math.min(a.getLng(), b.getLng()) - error;</span>
-<span class="nc" id="L487">        double maxLng = Math.max(a.getLng(), b.getLng()) + error;</span>
-<span class="nc" id="L488">        double minLat = Math.min(a.getLat(), b.getLat()) - error;</span>
-<span class="nc" id="L489">        double maxLat = Math.max(a.getLat(), b.getLat()) + error;</span>
-<span class="nc bnc" id="L490" title="All 8 branches missed.">        return c.getLng() &gt;= minLng &amp;&amp; c.getLng() &lt;= maxLng &amp;&amp; c.getLat() &gt;= minLat &amp;&amp; c.getLat() &lt;= maxLat;</span>
+<span class="fc" id="L486">        double minLng = Math.min(a.getLng(), b.getLng()) - error;</span>
+<span class="fc" id="L487">        double maxLng = Math.max(a.getLng(), b.getLng()) + error;</span>
+<span class="fc" id="L488">        double minLat = Math.min(a.getLat(), b.getLat()) - error;</span>
+<span class="fc" id="L489">        double maxLat = Math.max(a.getLat(), b.getLat()) + error;</span>
+<span class="pc bpc" id="L490" title="2 of 8 branches missed.">        return c.getLng() &gt;= minLng &amp;&amp; c.getLng() &lt;= maxLng &amp;&amp; c.getLat() &gt;= minLat &amp;&amp; c.getLat() &lt;= maxLat;</span>
     }
 
     //using error to prevent floating point error
     public boolean segmentsIntersect(Position p1, Position p2, Position q1, Position q2)
     {
-<span class="nc" id="L496">        double o1 = orient(p1, p2, q1);</span>
-<span class="nc" id="L497">        double o2 = orient(p1, p2, q2);</span>
-<span class="nc" id="L498">        double o3 = orient(q1, q2, p1);</span>
-<span class="nc" id="L499">        double o4 = orient(q1, q2, p2);</span>
+<span class="fc" id="L496">        double o1 = orient(p1, p2, q1);</span>
+<span class="fc" id="L497">        double o2 = orient(p1, p2, q2);</span>
+<span class="fc" id="L498">        double o3 = orient(q1, q2, p1);</span>
+<span class="fc" id="L499">        double o4 = orient(q1, q2, p2);</span>
 
         // intersection
-<span class="nc bnc" id="L502" title="All 4 branches missed.">        if (o1 * o2 &lt; 0 &amp;&amp; o3 * o4 &lt; 0)</span>
+<span class="fc bfc" id="L502" title="All 4 branches covered.">        if (o1 * o2 &lt; 0 &amp;&amp; o3 * o4 &lt; 0)</span>
         {
-<span class="nc" id="L504">            return true;</span>
+<span class="fc" id="L504">            return true;</span>
         }
 
         // Touching cases
-<span class="nc bnc" id="L508" title="All 4 branches missed.">        if (Math.abs(o1) &lt; error &amp;&amp; onSegment(p1, p2, q1))</span>
+<span class="pc bpc" id="L508" title="1 of 4 branches missed.">        if (Math.abs(o1) &lt; error &amp;&amp; onSegment(p1, p2, q1))</span>
         {
 <span class="nc" id="L510">            return true;</span>
         }
-<span class="nc bnc" id="L512" title="All 4 branches missed.">        if (Math.abs(o2) &lt; error &amp;&amp; onSegment(p1, p2, q2))</span>
+<span class="pc bpc" id="L512" title="1 of 4 branches missed.">        if (Math.abs(o2) &lt; error &amp;&amp; onSegment(p1, p2, q2))</span>
         {
 <span class="nc" id="L514">            return true;</span>
         }
-<span class="nc bnc" id="L516" title="All 4 branches missed.">        if (Math.abs(o3) &lt; error &amp;&amp; onSegment(q1, q2, p1))</span>
+<span class="pc bpc" id="L516" title="1 of 4 branches missed.">        if (Math.abs(o3) &lt; error &amp;&amp; onSegment(q1, q2, p1))</span>
         {
 <span class="nc" id="L518">            return true;</span>
         }
-<span class="nc bnc" id="L520" title="All 4 branches missed.">        if (Math.abs(o4) &lt; error &amp;&amp; onSegment(q1, q2, p2))</span>
+<span class="pc bpc" id="L520" title="1 of 4 branches missed.">        if (Math.abs(o4) &lt; error &amp;&amp; onSegment(q1, q2, p2))</span>
         {
 <span class="nc" id="L522">            return true;</span>
         }
 
-<span class="nc" id="L525">        return false;</span>
+<span class="fc" id="L525">        return false;</span>
     }
 
     public boolean isPathIntersectingAreaEdges(PositionsRequest path, RestrictedArea restrictedArea)
     {
-<span class="nc" id="L530">        boolean intersects = false;</span>
-<span class="nc" id="L531">        ArrayList&lt;PositionsRequest&gt; edges = getRegionEdges(new Region(restrictedArea.getName(), restrictedArea.getVertices()));</span>
+<span class="fc" id="L530">        boolean intersects = false;</span>
+<span class="fc" id="L531">        ArrayList&lt;PositionsRequest&gt; edges = getRegionEdges(new Region(restrictedArea.getName(), restrictedArea.getVertices()));</span>
 
-<span class="nc" id="L533">        Position p1 = path.getPosition1();</span>
-<span class="nc" id="L534">        Position p2 = path.getPosition2();</span>
+<span class="fc" id="L533">        Position p1 = path.getPosition1();</span>
+<span class="fc" id="L534">        Position p2 = path.getPosition2();</span>
 
-<span class="nc bnc" id="L536" title="All 2 branches missed.">        for (PositionsRequest edge : edges)</span>
+<span class="fc bfc" id="L536" title="All 2 branches covered.">        for (PositionsRequest edge : edges)</span>
         {
-<span class="nc" id="L538">            Position q1 = edge.getPosition1();</span>
-<span class="nc" id="L539">            Position q2 = edge.getPosition2();</span>
+<span class="fc" id="L538">            Position q1 = edge.getPosition1();</span>
+<span class="fc" id="L539">            Position q2 = edge.getPosition2();</span>
 
-<span class="nc bnc" id="L541" title="All 2 branches missed.">            if (segmentsIntersect(p1, p2, q1, q2))</span>
+<span class="fc bfc" id="L541" title="All 2 branches covered.">            if (segmentsIntersect(p1, p2, q1, q2))</span>
             {
-<span class="nc" id="L543">                intersects = true;</span>
-<span class="nc" id="L544">                break;</span>
+<span class="fc" id="L543">                intersects = true;</span>
+<span class="fc" id="L544">                break;</span>
             }
-<span class="nc" id="L546">        }</span>
-<span class="nc" id="L547">        return intersects;</span>
+        }
+<span class="fc" id="L547">        return intersects;</span>
     }
 
 
@@ -553,16 +553,16 @@ public class Utility
     {
 <span class="fc" id="L554">        boolean crossed = false;</span>
 
-<span class="pc bpc" id="L556" title="1 of 2 branches missed.">        for (RestrictedArea restrictedArea: restrictedAreas)</span>
+<span class="fc bfc" id="L556" title="All 2 branches covered.">        for (RestrictedArea restrictedArea: restrictedAreas)</span>
         {
-<span class="nc" id="L558">            Region region = new Region(restrictedArea.getName(), restrictedArea.getVertices());</span>
-<span class="nc" id="L559">            PositionRegionRequest positionRegionRequest = new PositionRegionRequest(path.getPosition2(),region);</span>
-<span class="nc bnc" id="L560" title="All 4 branches missed.">            if(isInRegion(positionRegionRequest) || isPathIntersectingAreaEdges(path,restrictedArea))</span>
+<span class="fc" id="L558">            Region region = new Region(restrictedArea.getName(), restrictedArea.getVertices());</span>
+<span class="fc" id="L559">            PositionRegionRequest positionRegionRequest = new PositionRegionRequest(path.getPosition2(),region);</span>
+<span class="fc bfc" id="L560" title="All 4 branches covered.">            if(isInRegion(positionRegionRequest) || isPathIntersectingAreaEdges(path,restrictedArea))</span>
             {
-<span class="nc" id="L562">                crossed = true;</span>
-<span class="nc" id="L563">                break;</span>
+<span class="fc" id="L562">                crossed = true;</span>
+<span class="fc" id="L563">                break;</span>
             }
-<span class="nc" id="L565">        }</span>
+        }
 
 <span class="fc" id="L567">        return crossed;</span>
     }
@@ -598,20 +598,20 @@ public class Utility
 <span class="fc" id="L598">        minHeap.add(new Node( null, start,0.0,calculateDistance(start,end)));</span>
 
         //main loop
-<span class="pc bpc" id="L601" title="1 of 2 branches missed.">        while (!minHeap.isEmpty())</span>
+<span class="fc bfc" id="L601" title="All 2 branches covered.">        while (!minHeap.isEmpty())</span>
         {
 <span class="fc" id="L603">            Node u = minHeap.poll();</span>
 
-<span class="pc bpc" id="L605" title="1 of 2 branches missed.">            if (expansions++ &gt;= maxExpansions)</span>
+<span class="fc bfc" id="L605" title="All 2 branches covered.">            if (expansions++ &gt;= maxExpansions)</span>
             {
-<span class="nc" id="L607">                return new ArrayList&lt;&gt;(); // treat as &quot;no path&quot;, too many expansions</span>
+<span class="fc" id="L607">                return new ArrayList&lt;&gt;(); // treat as &quot;no path&quot;, too many expansions</span>
             }
 
 <span class="fc bfc" id="L610" title="All 2 branches covered.">            if (calculateDistance(u.getPosition(), end) &lt; unitLength)</span>
             {
 <span class="fc" id="L612">                return calculatePath(u);</span>
             }
-<span class="pc bpc" id="L614" title="1 of 2 branches missed.">            if (!visited.contains(getKey(u.getPosition())))</span>
+<span class="fc bfc" id="L614" title="All 2 branches covered.">            if (!visited.contains(getKey(u.getPosition())))</span>
             {
 <span class="fc" id="L616">                visited.add(getKey(u.getPosition()));</span>
 <span class="fc bfc" id="L617" title="All 2 branches covered.">                for (double angle = 0.0; angle &lt; 360; angle += 22.5)</span>
@@ -623,14 +623,14 @@ public class Utility
 <span class="fc" id="L623">                    PositionsRequest path = new  PositionsRequest(u.getPosition(),nextPosition);</span>
 <span class="fc" id="L624">                    Node v = new Node(u, nextPosition, u.getGScore() + unitLength, calculateDistance(nextPosition, end));</span>
 
-<span class="pc bpc" id="L626" title="1 of 4 branches missed.">                    if (!visited.contains(getKey(v.getPosition())) &amp;&amp; !isPathCrossingRestrictionArea(path,restrictedAreas))</span>
+<span class="fc bfc" id="L626" title="All 4 branches covered.">                    if (!visited.contains(getKey(v.getPosition())) &amp;&amp; !isPathCrossingRestrictionArea(path,restrictedAreas))</span>
                     {
 <span class="fc" id="L628">                        minHeap.add(v);</span>
                     }
                 }
             }
-<span class="fc" id="L632">        }</span>
-<span class="nc" id="L633">        return new ArrayList&lt;&gt;();</span>
+        }
+<span class="fc" id="L633">        return new ArrayList&lt;&gt;();</span>
     }
 
     private String safe(String s) {
@@ -667,8 +667,8 @@ public class Utility
 <span class="pc bpc" id="L667" title="1 of 2 branches missed.">            if (!Files.exists(logFile))</span>
             {
 <span class="nc" id="L669">                Files.writeString(</span>
-                        logFile,
-                        &quot;deliveryId,&quot; +
+<span class="nc" id="L670">                        logFile,</span>
+<span class="nc" id="L671">                        &quot;deliveryId,&quot; +</span>
                                 &quot;droneId,&quot; +
                                 &quot;servicePointLng,&quot; +
                                 &quot;servicePointLat,&quot; +
@@ -684,14 +684,14 @@ public class Utility
                                 &quot;heatingRequired&quot; +
                                 &quot;\n&quot;);
             }
-        }
+<span class="nc" id="L687">        }</span>
 <span class="nc" id="L688">        catch (IOException e)</span>
         {
 <span class="nc" id="L690">            System.err.println(&quot;Error while trying to log entry: &quot; + e.getMessage());</span>
-<span class="fc" id="L691">        }</span>
+        }
 
 <span class="fc" id="L693">        String line = String.format(</span>
-                &quot;%s,%s,%.7f,%.7f,%s,%s,%.7f,%.7f,%s,%s,%.4f,%.2f,%s,%s%n&quot;,
+<span class="fc" id="L694">                &quot;%s,%s,%.7f,%.7f,%s,%s,%.7f,%.7f,%s,%s,%.4f,%.2f,%s,%s%n&quot;,</span>
 <span class="fc" id="L695">                safeInteger(logEntry.getDeliveryId()),</span>
 <span class="fc" id="L696">                safe(logEntry.getDroneId()),</span>
 <span class="fc" id="L697">                safeDouble(logEntry.getServicePointLng()),</span>
@@ -715,7 +715,7 @@ public class Utility
 <span class="nc" id="L715">        catch (IOException e)</span>
         {
 <span class="nc" id="L717">            System.err.println(&quot;Error while trying to log entry: &quot; + e.getMessage());</span>
-<span class="fc" id="L718">        }</span>
+        }
 <span class="fc" id="L719">    }</span>
 
     public ServicePoint getServicePoint(Position servicePointPosition, ArrayList&lt;ServicePoint&gt; servicePoints)
@@ -733,7 +733,7 @@ public class Utility
 <span class="fc" id="L733">                targetServicePoint = servicePoint;</span>
 <span class="fc" id="L734">                break;</span>
             }
-<span class="nc" id="L736">        }</span>
+        }
 <span class="fc" id="L737">        return targetServicePoint;</span>
     }
 
@@ -745,11 +745,11 @@ public class Utility
 
 <span class="pc bpc" id="L746" title="1 of 2 branches missed.">        for (MedicineDispatchRequest query : queries)</span>
         {
-<span class="pc bpc" id="L748" title="2 of 4 branches missed.">            if (query != null &amp;&amp; id.equals(query.getId()))</span>
+<span class="pc bpc" id="L748" title="1 of 4 branches missed.">            if (query != null &amp;&amp; id.equals(query.getId()))</span>
             {
 <span class="fc" id="L750">                return query;</span>
             }
-<span class="nc" id="L752">        }</span>
+        }
 <span class="nc" id="L753">        return null;</span>
     }
 
@@ -783,7 +783,7 @@ public class Utility
                 {
 <span class="fc" id="L784">                    realDeliveries.add(d);</span>
                 }
-<span class="fc" id="L786">            }</span>
+            }
 
 <span class="pc bpc" id="L788" title="1 of 2 branches missed.">            if (realDeliveries.isEmpty())</span>
             {
@@ -853,8 +853,8 @@ public class Utility
                 }
 
 <span class="fc" id="L855">                log(logEntry);</span>
-<span class="fc" id="L856">            }</span>
-<span class="fc" id="L857">        }</span>
+            }
+        }
 <span class="fc" id="L858">    }</span>
 
 

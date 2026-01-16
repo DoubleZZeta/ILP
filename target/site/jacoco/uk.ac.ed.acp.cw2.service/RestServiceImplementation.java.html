@@ -23,51 +23,51 @@ public class RestServiceImplementation implements RestService
 
     //Dependency inject the utility clas
     @Autowired
-    public RestServiceImplementation(final Utility utility)
-<span class="fc" id="L27">    {</span>
+<span class="fc" id="L26">    public RestServiceImplementation(final Utility utility)</span>
+    {
 <span class="fc" id="L28">        this.utility = utility;</span>
 <span class="fc" id="L29">    }</span>
 
     @Override
     public Double distanceTo(PositionsRequest Request)
     {
-<span class="nc" id="L34">        Position position1 = Request.getPosition1();</span>
-<span class="nc" id="L35">        Position position2 = Request.getPosition2();</span>
+<span class="fc" id="L34">        Position position1 = Request.getPosition1();</span>
+<span class="fc" id="L35">        Position position2 = Request.getPosition2();</span>
 
-<span class="nc" id="L37">        return utility.calculateDistance(position1,position2);</span>
+<span class="fc" id="L37">        return utility.calculateDistance(position1,position2);</span>
     }
 
     @Override
     public boolean isCloseTo(PositionsRequest Request)
     {
-<span class="nc" id="L43">        Position position1 = Request.getPosition1();</span>
-<span class="nc" id="L44">        Position position2 = Request.getPosition2();</span>
+<span class="fc" id="L43">        Position position1 = Request.getPosition1();</span>
+<span class="fc" id="L44">        Position position2 = Request.getPosition2();</span>
 
-<span class="nc" id="L46">        Double distance = utility.calculateDistance(position1,position2);</span>
+<span class="fc" id="L46">        Double distance = utility.calculateDistance(position1,position2);</span>
 
         //If the distance is less than 0.00015, return true
-<span class="nc bnc" id="L49" title="All 2 branches missed.">        return distance.compareTo(unitLength) &lt; 0;</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        return distance.compareTo(unitLength) &lt; 0;</span>
     }
 
     @Override
     public String nextPosition(PositionAngleRequest Request) {
-<span class="nc" id="L54">        Position start = Request.getStart();</span>
-<span class="nc" id="L55">        Double angle = Request.getAngle();</span>
+<span class="fc" id="L54">        Position start = Request.getStart();</span>
+<span class="fc" id="L55">        Double angle = Request.getAngle();</span>
 
         //Calculate the new position using trigonometric functions
-<span class="nc" id="L58">        angle = Math.toRadians(angle);</span>
-<span class="nc" id="L59">        Double lng = unitLength * Math.cos(angle) + start.getLng();</span>
-<span class="nc" id="L60">        Double lat = unitLength * Math.sin(angle) + start.getLat();</span>
+<span class="fc" id="L58">        angle = Math.toRadians(angle);</span>
+<span class="fc" id="L59">        Double lng = unitLength * Math.cos(angle) + start.getLng();</span>
+<span class="fc" id="L60">        Double lat = unitLength * Math.sin(angle) + start.getLat();</span>
 
         //Make sure that the return lng lat pair is in five decimal places
-<span class="nc" id="L63">        return String.format(&quot;{ \&quot;lng\&quot;: %.5f, \&quot;lat\&quot;: %.5f }&quot;, lng, lat);</span>
+<span class="fc" id="L63">        return String.format(&quot;{ \&quot;lng\&quot;: %.5f, \&quot;lat\&quot;: %.5f }&quot;, lng, lat);</span>
     }
 
     @Override
     public boolean isInRegion(PositionRegionRequest Request)
     {
         // Moved the logic to utility for cw2
-<span class="nc" id="L70">        return utility.isInRegion(Request);</span>
+<span class="fc" id="L70">        return utility.isInRegion(Request);</span>
     }
 
     @Override
@@ -79,7 +79,7 @@ public class RestServiceImplementation implements RestService
             {
 <span class="nc" id="L80">                dronesWithCooling.add(drone.getId());</span>
             }
-<span class="nc" id="L82">        }</span>
+        }
 <span class="nc" id="L83">        return dronesWithCooling;</span>
     }
 
@@ -94,7 +94,7 @@ public class RestServiceImplementation implements RestService
 <span class="nc" id="L94">                droneWithId = drone;</span>
 <span class="nc" id="L95">                break;</span>
             }
-<span class="nc" id="L97">        }</span>
+        }
 <span class="nc" id="L98">        return droneWithId;</span>
     }
 
@@ -122,13 +122,13 @@ public class RestServiceImplementation implements RestService
 <span class="nc" id="L122">                    matchesAll = false;</span>
 <span class="nc" id="L123">                    break;</span>
                 }
-<span class="nc" id="L125">            }</span>
+            }
 
 <span class="nc bnc" id="L127" title="All 2 branches missed.">            if (matchesAll)</span>
             {
 <span class="nc" id="L129">                 droneIds.add(drone.getId());</span>
             }
-<span class="nc" id="L131">        }</span>
+        }
 
 <span class="nc" id="L133">        return droneIds;</span>
     }
@@ -167,14 +167,14 @@ public class RestServiceImplementation implements RestService
 <span class="nc" id="L167">                        matchesAll = false;</span>
 <span class="nc" id="L168">                        break;</span>
                     }
-<span class="nc" id="L170">                }</span>
+                }
 
 <span class="nc bnc" id="L172" title="All 2 branches missed.">                if (matchesAll)</span>
                 {
 <span class="nc" id="L174">                    droneIds.add(drone.getId());</span>
                 }
 
-<span class="nc" id="L177">            }</span>
+            }
 
 
 <span class="nc" id="L180">        return droneIds;</span>
@@ -230,11 +230,11 @@ public class RestServiceImplementation implements RestService
                         }
 
                         // If haven't fixed a base for this flight, lock it in
-<span class="pc bpc" id="L233" title="1 of 2 branches missed.">                        if (currentDroneBase == null)</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">                        if (currentDroneBase == null)</span>
                         {
 <span class="fc" id="L235">                            currentDroneBase = droneBase;</span>
-                        }
-<span class="nc bnc" id="L237" title="All 2 branches missed.">                        else if (!currentDroneBase.equals(droneBase))</span>
+<span class="fc" id="L236">                        }</span>
+<span class="pc bpc" id="L237" title="1 of 2 branches missed.">                        else if (!currentDroneBase.equals(droneBase))</span>
                         {
                             // This query would require starting from a different base,
                             // so it can't belong to this particular string
@@ -260,20 +260,20 @@ public class RestServiceImplementation implements RestService
 
 <span class="pc bpc" id="L261" title="1 of 2 branches missed.">                        if (canDeliver)</span>
                         {
-<span class="pc bpc" id="L263" title="1 of 2 branches missed.">                            if(currentDronePath.isEmpty())</span>
+<span class="fc bfc" id="L263" title="All 2 branches covered.">                            if(currentDronePath.isEmpty())</span>
                             {
 <span class="fc" id="L265">                                start = droneBase;</span>
-                            }
+<span class="fc" id="L266">                            }</span>
                             else
                             {
-<span class="nc" id="L269">                                start = currentDronePath.getLast();</span>
+<span class="fc" id="L269">                                start = currentDronePath.getLast();</span>
                             }
 <span class="fc" id="L271">                            end = query.getDelivery();</span>
 
 <span class="fc" id="L273">                            ArrayList&lt;Position&gt; toDeliver = utility.aStarSearch(start,end,restrictedAreas);</span>
 <span class="fc" id="L274">                            ArrayList&lt;Position&gt; toBase = utility.aStarSearch(end,droneBase,restrictedAreas);</span>
 
-<span class="pc bpc" id="L276" title="2 of 4 branches missed.">                            if (toDeliver.isEmpty() || toBase.isEmpty())</span>
+<span class="pc bpc" id="L276" title="1 of 4 branches missed.">                            if (toDeliver.isEmpty() || toBase.isEmpty())</span>
                             {
                                 // no valid path, treat as cannot deliver this query
 <span class="nc" id="L279">                                continue;</span>
@@ -289,10 +289,10 @@ public class RestServiceImplementation implements RestService
 <span class="fc" id="L289">                            double estimatedCurrentFlightCost = currentLandingAndTakeOffCost + estimatedCurrentDroneMoves * droneCapability.getCostPerMove();</span>
 <span class="fc" id="L290">                            currentCostPerDelivery = estimatedCurrentFlightCost / estimatedCurrentNumberOfDeliveries;</span>
 
-<span class="pc bpc" id="L292" title="1 of 2 branches missed.">                            boolean lowerThanMaxMove = (estimatedCurrentDroneMoves &lt;= droneCapability.getMaxMoves());</span>
+<span class="fc bfc" id="L292" title="All 2 branches covered.">                            boolean lowerThanMaxMove = (estimatedCurrentDroneMoves &lt;= droneCapability.getMaxMoves());</span>
 <span class="pc bpc" id="L293" title="3 of 4 branches missed.">                            boolean lowerThanMaxCost = ((queryRequirements.getMaxCost() == null) || (currentCostPerDelivery &lt;= queryRequirements.getMaxCost()));</span>
 
-<span class="pc bpc" id="L295" title="2 of 4 branches missed.">                            if( lowerThanMaxMove &amp;&amp; lowerThanMaxCost )</span>
+<span class="pc bpc" id="L295" title="1 of 4 branches missed.">                            if( lowerThanMaxMove &amp;&amp; lowerThanMaxCost )</span>
                             {
 <span class="fc" id="L297">                                currentDroneMoves += movesTo;</span>
 <span class="fc" id="L298">                                currentNumberOfDeliveries += 1;</span>
@@ -306,7 +306,7 @@ public class RestServiceImplementation implements RestService
                             }
                         }
 
-<span class="fc" id="L309">                    }</span>
+                    }
                     // close flight if did anything
 <span class="fc bfc" id="L311" title="All 2 branches covered.">                    if (!currentDronePath.isEmpty())</span>
                     {
@@ -324,11 +324,11 @@ public class RestServiceImplementation implements RestService
                     }
 
                 }
-<span class="pc bpc" id="L327" title="1 of 4 branches missed.">                while(progress &amp;&amp; !queryByDate.isEmpty());</span>
+<span class="fc bfc" id="L327" title="All 4 branches covered.">                while(progress &amp;&amp; !queryByDate.isEmpty());</span>
 
-<span class="fc" id="L329">            }</span>
+            }
 
-<span class="fc" id="L331">        }</span>
+        }
 <span class="fc" id="L332">        returnedPath.setTotalCost(totalCost);</span>
 <span class="fc" id="L333">        returnedPath.setTotalMoves(totalMoves);</span>
 <span class="fc" id="L334">        utility.logReturnedPath(returnedPath,queries,servicePoints);</span>
@@ -353,13 +353,13 @@ public class RestServiceImplementation implements RestService
 <span class="nc" id="L353">                    lngLat.add(position.getLng());</span>
 <span class="nc" id="L354">                    lngLat.add(position.getLat());</span>
 <span class="nc" id="L355">                    geometry.getCoordinates().add(lngLat);</span>
-<span class="nc" id="L356">                }</span>
+                }
 <span class="nc" id="L357">                Feature feature = new Feature(&quot;Feature&quot;,new HashMap&lt;&gt;(),geometry);</span>
 <span class="nc" id="L358">                geoJson.getFeatures().add(feature);</span>
 
-<span class="nc" id="L360">            }</span>
+            }
 
-<span class="nc" id="L362">        }</span>
+        }
 <span class="nc" id="L363">        return geoJson;</span>
     }
 

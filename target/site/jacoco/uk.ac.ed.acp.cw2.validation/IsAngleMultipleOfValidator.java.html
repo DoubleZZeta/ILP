@@ -7,27 +7,27 @@ import jakarta.validation.ConstraintValidatorContext;
  * Validator class that implements the validator interface.
  * Checks that if a given angle (not null) is a multiple of 22.5.
  */
-<span class="nc" id="L10">public class IsAngleMultipleOfValidator implements</span>
+<span class="fc" id="L10">public class IsAngleMultipleOfValidator implements</span>
         ConstraintValidator&lt;IsAngleMultipleOf, Double&gt;
 {
     @Override
     public void initialize(IsAngleMultipleOf constraintAnnotation)
     {
 
-<span class="nc" id="L17">    }</span>
+<span class="fc" id="L17">    }</span>
 
     @Override
     public boolean isValid (Double angle, ConstraintValidatorContext context)
     {
         //If the angle is null, return true and pass it to other validators
         //The case where the angle is null is handled by @NotNull
-<span class="nc bnc" id="L24" title="All 2 branches missed.">        if (angle == null)</span>
+<span class="fc bfc" id="L24" title="All 2 branches covered.">        if (angle == null)</span>
         {
-<span class="nc" id="L26">            return true;</span>
+<span class="fc" id="L26">            return true;</span>
         }
 
         //If the angle is not NULL then do the check
-<span class="nc bnc" id="L30" title="All 2 branches missed.">        return angle % 22.5 == 0;</span>
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        return angle % 22.5 == 0;</span>
     }
 
 

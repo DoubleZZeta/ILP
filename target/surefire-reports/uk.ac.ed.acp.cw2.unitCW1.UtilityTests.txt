@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: uk.ac.ed.acp.cw2.unitCW1.UtilityTests
+-------------------------------------------------------------------------------
+Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.176 s -- in uk.ac.ed.acp.cw2.unitCW1.UtilityTests

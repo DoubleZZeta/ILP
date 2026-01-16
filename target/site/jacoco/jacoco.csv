@@ -1,13 +1,13 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-IlpTutorial1,uk.ac.ed.acp.cw2.service,RestServiceImplementation,415,365,61,27,84,80,47,9,9,3
+IlpTutorial1,uk.ac.ed.acp.cw2.service,RestServiceImplementation,323,457,52,36,59,95,36,20,5,7
 IlpTutorial1,uk.ac.ed.acp.cw2.service,DataFetchServiceImplementation,16,93,4,4,4,20,4,5,0,5
-IlpTutorial1,uk.ac.ed.acp.cw2.handler,GlobalExceptionHandler,1,3,0,0,1,1,1,1,1,1
+IlpTutorial1,uk.ac.ed.acp.cw2.handler,GlobalExceptionHandler,0,4,0,0,0,2,0,2,0,2
 IlpTutorial1,uk.ac.ed.acp.cw2.configuration,IlpRestServiceConfig,3,20,3,1,0,7,2,4,0,4
-IlpTutorial1,uk.ac.ed.acp.cw2.validation,IsAngleMultipleOfValidator,19,0,4,0,5,0,5,0,3,0
-IlpTutorial1,uk.ac.ed.acp.cw2.validation,IsRegionClosedValidator,33,0,6,0,7,0,6,0,3,0
+IlpTutorial1,uk.ac.ed.acp.cw2.validation,IsAngleMultipleOfValidator,0,19,0,4,0,5,0,5,0,3
+IlpTutorial1,uk.ac.ed.acp.cw2.validation,IsRegionClosedValidator,0,33,1,5,0,7,1,5,0,3
 IlpTutorial1,uk.ac.ed.acp.cw2,Application,5,3,0,0,2,1,1,1,1,1
 IlpTutorial1,uk.ac.ed.acp.cw2.utility,Utility.Node,0,29,0,0,0,7,0,2,0,2
-IlpTutorial1,uk.ac.ed.acp.cw2.utility,Utility.new TypeReference() {...},3,0,0,0,1,0,1,0,1,0
-IlpTutorial1,uk.ac.ed.acp.cw2.utility,Utility.new TypeReference() {...},3,0,0,0,1,0,1,0,1,0
-IlpTutorial1,uk.ac.ed.acp.cw2.utility,Utility,1030,874,206,81,198,180,144,37,14,20
-IlpTutorial1,uk.ac.ed.acp.cw2.controller,ServiceController,138,38,2,0,29,10,13,3,12,3
+IlpTutorial1,uk.ac.ed.acp.cw2.utility,Utility.new TypeReference() {...},6,0,0,0,1,0,1,0,1,0
+IlpTutorial1,uk.ac.ed.acp.cw2.utility,Utility.new TypeReference() {...},6,0,0,0,1,0,1,0,1,0
+IlpTutorial1,uk.ac.ed.acp.cw2.utility,Utility,461,1434,137,148,110,254,102,78,6,28
+IlpTutorial1,uk.ac.ed.acp.cw2.controller,ServiceController,116,60,2,0,25,15,8,8,7,8

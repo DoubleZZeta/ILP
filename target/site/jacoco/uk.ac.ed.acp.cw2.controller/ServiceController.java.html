@@ -29,8 +29,8 @@ public class ServiceController
 
     //Inject the service
     @Autowired
-    public ServiceController(final RestService restService, final DataFetchService dataFetchService)
-<span class="fc" id="L33">    {</span>
+<span class="fc" id="L32">    public ServiceController(final RestService restService, final DataFetchService dataFetchService)</span>
+    {
 <span class="fc" id="L34">        this.restService = restService;</span>
 <span class="fc" id="L35">        this.dataFetchService = dataFetchService;</span>
 <span class="fc" id="L36">    }</span>
@@ -43,38 +43,38 @@ public class ServiceController
     {
 <span class="nc" id="L44">        return &quot;&lt;html&gt;&lt;body&gt;&quot; +</span>
                 &quot;&lt;h1&gt;Welcome from ILP&lt;/h1&gt;&quot; +
-                &quot;&lt;h4&gt;ILP-REST-Service-URL:&lt;/h4&gt; &lt;a href=\&quot;&quot; + serviceUrl + &quot;\&quot; target=\&quot;_blank\&quot;&gt; &quot; + serviceUrl+ &quot; &lt;/a&gt;&quot; +
+<span class="nc" id="L46">                &quot;&lt;h4&gt;ILP-REST-Service-URL:&lt;/h4&gt; &lt;a href=\&quot;&quot; + serviceUrl + &quot;\&quot; target=\&quot;_blank\&quot;&gt; &quot; + serviceUrl+ &quot; &lt;/a&gt;&quot; +</span>
                 &quot;&lt;/body&gt;&lt;/html&gt;&quot;;
     }
 
     @GetMapping(&quot;/uid&quot;)
     public String uid()
     {
-<span class="nc" id="L53">        return &quot;s2487866&quot;;</span>
+<span class="fc" id="L53">        return &quot;s2487866&quot;;</span>
     }
 
     @PostMapping(&quot;/distanceTo&quot;)
     public Double distanceTo(@Valid @RequestBody PositionsRequest request)
     {
-<span class="nc" id="L59">        return  restService.distanceTo(request);</span>
+<span class="fc" id="L59">        return  restService.distanceTo(request);</span>
     }
 
     @PostMapping(&quot;/isCloseTo&quot;)
     public boolean isCloseTo(@Valid @RequestBody PositionsRequest request)
     {
-<span class="nc" id="L65">        return  restService.isCloseTo(request);</span>
+<span class="fc" id="L65">        return  restService.isCloseTo(request);</span>
     }
 
     @PostMapping(&quot;/nextPosition&quot;)
     public String nextPosition(@Valid @RequestBody PositionAngleRequest request)
     {
-<span class="nc" id="L71">        return  restService.nextPosition(request);</span>
+<span class="fc" id="L71">        return  restService.nextPosition(request);</span>
     }
 
     @PostMapping(&quot;/isInRegion&quot;)
     public boolean isInRegion(@Valid @RequestBody PositionRegionRequest request)
     {
-<span class="nc" id="L77">        return  restService.isInRegion(request);</span>
+<span class="fc" id="L77">        return  restService.isInRegion(request);</span>
     }
 
     @GetMapping(&quot;/dronesWithCooling/{state}&quot;)

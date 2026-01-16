@@ -10,30 +10,30 @@ import java.util.Objects;
  * Validator class that implements the validator interface.
  * Checks that if a given region is closed
  */
-<span class="nc" id="L13">public class IsRegionClosedValidator implements</span>
+<span class="fc" id="L13">public class IsRegionClosedValidator implements</span>
         ConstraintValidator&lt;IsRegionClosed, ArrayList&lt;Position&gt;&gt;
 {
     @Override
     public void initialize(IsRegionClosed constraintAnnotation)
     {
 
-<span class="nc" id="L20">    }</span>
+<span class="fc" id="L20">    }</span>
 
     @Override
     public boolean isValid (ArrayList&lt;Position&gt; vertices,  ConstraintValidatorContext context)
     {
         //If the region is null, return true and pass it to other validators
         //The case where the region is null is handled by @NotNull
-<span class="nc bnc" id="L27" title="All 2 branches missed.">        if (Objects.isNull(vertices))</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        if (Objects.isNull(vertices))</span>
         {
-<span class="nc" id="L29">            return true;</span>
+<span class="fc" id="L29">            return true;</span>
         }
 
-<span class="nc" id="L32">        Position first = vertices.getFirst();</span>
-<span class="nc" id="L33">        Position last = vertices.getLast();</span>
+<span class="fc" id="L32">        Position first = vertices.getFirst();</span>
+<span class="fc" id="L33">        Position last = vertices.getLast();</span>
 
         //If the angle is not NULL then validate by checking if the first and the last vertex are the same.
-<span class="nc bnc" id="L36" title="All 4 branches missed.">        return Objects.equals(first.getLng(), last.getLng()) &amp;&amp; Objects.equals(first.getLat(), last.getLat());</span>
+<span class="pc bpc" id="L36" title="1 of 4 branches missed.">        return Objects.equals(first.getLng(), last.getLng()) &amp;&amp; Objects.equals(first.getLat(), last.getLat());</span>
     }
 
 
